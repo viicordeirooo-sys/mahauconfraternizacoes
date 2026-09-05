@@ -582,31 +582,12 @@ const firebaseConfig = {
 };
 
 try {
-  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField},{initializeAppCheck,ReCaptchaEnterpriseProvider,getToken}] = await Promise.all([
+  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField}] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js"),
-    import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js"),
-    import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app-check.js")
+    import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js")
   ]);
   const app=initializeApp(firebaseConfig);
-
-  // O App Check precisa ser inicializado ANTES de Auth e Firestore para que
-  // essas requisições já nasçam com o token de App Check.
-  const APP_CHECK_SITE_KEY="6LefSastAAAAAIX6yq-qgVnRS-8WGORm18IgOpp0";
-  const appCheck=initializeAppCheck(app,{
-    provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
-    isTokenAutoRefreshEnabled:true
-  });
-
-  // Force the first App Check token to be obtained before Auth/Firestore
-  // make their first requests. This avoids initial requests being classified
-  // as invalid while the reCAPTCHA Enterprise attestation is still pending.
-  try {
-    await getToken(appCheck, true);
-  } catch (appCheckError) {
-    console.warn("App Check token was not obtained yet:", appCheckError);
-  }
-
   const auth=getAuth(app);
   const db=getFirestore(app);
   window.MAHAU_FIREBASE={app,auth,db};
