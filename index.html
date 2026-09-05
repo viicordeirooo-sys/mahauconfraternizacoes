@@ -34,6 +34,13 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px 10px;border-bottom:
 .toast{position:fixed;right:22px;bottom:22px;background:#181818;border:1px solid var(--gold);padding:12px 16px;border-radius:10px;display:none;z-index:80;font-size:12px}
 @media(max-width:1000px){.sidebar{width:70px}.brand{padding:8px 5px 25px}.brand b{font-size:19px}.brand span{display:none}.nav button span{display:none}.nav button{justify-content:center}.main{margin-left:70px;width:calc(100% - 70px);padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}.pipeline{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
 @media(max-width:600px){.top{display:block}.actions{margin-top:15px}.kpis{grid-template-columns:1fr 1fr}.pipeline{grid-template-columns:1fr}.form{grid-template-columns:1fr}.form .full{grid-column:auto}}
+
+/* MAHAU V4 — opportunity workflow */
+.nav button .nav-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block}
+.opportunity-card{background:#111;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:10px}
+.op-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.op-title{font-size:15px;font-weight:750}.op-meta{color:var(--muted);font-size:11px;margin-top:4px}.op-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.btn.small{padding:7px 10px;font-size:11px}.btn.success{border-color:#245c3a;color:var(--green)}.btn.danger{border-color:#5b2525;color:var(--red)}
+.timeline{border-left:1px solid #343434;margin:14px 0 6px 7px;padding-left:18px}.timeline-item{position:relative;padding:0 0 15px}.timeline-item:before{content:"";position:absolute;left:-23px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--gold)}.timeline-date{font-size:10px;color:var(--gold)}.timeline-title{font-size:12px;font-weight:700;margin-top:3px}.timeline-note{font-size:11px;color:var(--muted);margin-top:3px;line-height:16px}.detail-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.stepper{display:flex;gap:5px;overflow:auto;padding:4px 0}.step{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:10px;color:var(--muted)}.step.done{color:var(--green);border-color:#245c3a}.step.current{color:var(--gold2);border-color:#6a542d;background:#201a10}
+@media(max-width:700px){.nav{display:flex;overflow-x:auto;gap:3px;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav button{flex:0 0 72px}.op-head{display:block}.detail-grid{grid-template-columns:1fr}.op-actions .btn{flex:1;min-width:105px}}
 </style>
 
 <style id="mahau-mobile-v2">
@@ -114,9 +121,11 @@ html,body{min-width:0;overflow-x:hidden}
     <button data-page="plano">◷ <span>30 / 60 / 90</span></button>
     <button data-page="pipeline">▦ <span>Pipeline</span></button>
     <button data-page="empresas">◎ <span>Empresas</span></button>
+    <button data-page="oportunidades">◉ <span>Oportunidades</span></button>
     <button data-page="followup">◷ <span>Follow-up</span></button>
     <button data-page="fechados">▣ <span>Fechados</span></button>
     <button data-page="perdidos">× <span>Perdidos</span></button>
+    <button data-page="cancelados">↩ <span>Cancelados</span></button>
     <button data-page="tarefas">✓ <span>Tarefas</span></button>
     <button data-page="metas">↗ <span>Metas</span></button>
     <button data-page="relatorios">▤ <span>Relatórios</span></button>
@@ -178,6 +187,16 @@ html,body{min-width:0;overflow-x:hidden}
   <div class="card"><div id="companiesTable"></div></div>
 </section>
 
+<section id="oportunidades" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">OPERAÇÃO COMERCIAL</div>
+    <div class="title" style="font-size:26px;margin-top:5px">Oportunidades</div>
+    <div class="muted">Aqui o comercial trabalha cada venda: próxima ação, histórico, follow-ups e resultado.</div>
+  </div>
+  <div class="toolbar"><input class="input" id="oppSearch" placeholder="Buscar empresa ou evento..." oninput="renderOpportunities()"><select class="select" id="oppFilter" onchange="renderOpportunities()"><option value="active">Em aberto</option><option value="all">Todas</option><option value="hot">Negociação</option></select><button class="btn gold" onclick="openModal()">+ Nova oportunidade</button></div>
+  <div id="opportunitiesList"></div>
+</section>
+
 
 <section id="followup" class="page">
   <div class="card" style="margin-bottom:14px">
@@ -229,6 +248,17 @@ html,body{min-width:0;overflow-x:hidden}
     <div class="card"><div class="kpi-label">Principal motivo</div><div class="kpi-value" id="lostReason" style="font-size:18px">—</div><div class="kpi-note">maior recorrência</div></div>
   </div>
   <div class="card"><div id="lostTable"></div></div>
+</section>
+
+<section id="cancelados" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">CONTROLE DE CANCELAMENTOS</div>
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px">
+      <div><div class="title" style="font-size:26px;margin-top:5px">Eventos Cancelados</div><div class="muted">Eventos que chegaram a existir e depois foram cancelados.</div></div>
+      <div style="text-align:right"><div class="kpi-value" id="cancelRevenue">R$ 0</div><div class="muted" style="font-size:10px">valor cancelado</div></div>
+    </div>
+  </div>
+  <div class="card"><div id="cancelTable"></div></div>
 </section>
 
 <section id="tarefas" class="page">
@@ -293,6 +323,21 @@ html,body{min-width:0;overflow-x:hidden}
 <div class="full" style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" onclick="closeTaskModal()">Cancelar</button><button class="btn gold">Criar tarefa</button></div>
 </form></div></div>
 
+<div class="modal" id="detailModal"><div class="modal-box" style="width:min(900px,100%)"><div class="modal-head"><div><div class="eyebrow">OPORTUNIDADE</div><h3 id="detailTitle" style="margin-top:5px"></h3></div><button class="close" onclick="closeDetail()">×</button></div><div id="detailBody"></div></div></div>
+
+<div class="modal" id="activityModal"><div class="modal-box"><div class="modal-head"><div><div class="eyebrow">CRM</div><h3>Registrar interação</h3></div><button class="close" onclick="closeActivity()">×</button></div>
+<form class="form" onsubmit="saveActivity(event)">
+<input type="hidden" id="aDealId">
+<div><label>Tipo</label><select class="select" id="aType"><option>Ligação</option><option>WhatsApp</option><option>E-mail</option><option>Reunião</option><option>Visita ao MAHAU</option><option>Apresentação</option><option>Proposta enviada</option><option>Negociação</option><option>Outro</option></select></div>
+<div><label>Resultado</label><select class="select" id="aResult"><option>Contato realizado</option><option>Sem resposta</option><option>Interessado</option><option>Aguardando retorno</option><option>Pediu proposta</option><option>Pediu reunião</option><option>Pediu visita</option><option>Em negociação</option><option>Outro</option></select></div>
+<div class="full"><label>O que aconteceu?</label><textarea class="textarea" id="aNotes" required placeholder="Ex.: Cliente gostou do espaço e pediu proposta para 180 pessoas."></textarea></div>
+<div><label>Próximo passo</label><select class="select" id="aNextAction"><option>Ligação</option><option>WhatsApp</option><option>E-mail</option><option>Reunião</option><option>Visita ao MAHAU</option><option>Enviar apresentação</option><option>Enviar proposta</option><option>Retornar proposta</option><option>Negociação</option><option>Outro</option></select></div>
+<div><label>Data do próximo passo</label><input class="input" id="aNextDate" type="date"></div>
+<div><label>Resultado do ciclo</label><select class="select" id="aOutcome" onchange="toggleNextStage()"><option value="continue">Continuar + novo follow-up</option><option value="advance">Avançar etapa</option><option value="closed">Fechar evento</option><option value="lost">Perder oportunidade</option><option value="cancelled">Cancelar evento</option></select></div>
+<div id="nextStageWrap" style="display:none"><label>Nova etapa</label><select class="select" id="aNextStage"><option>Qualificado</option><option>Reunião</option><option>Proposta</option><option>Negociação</option></select></div>
+<div class="full" style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" onclick="closeActivity()">Cancelar</button><button class="btn gold">Salvar interação</button></div>
+</form></div></div>
+
 <div class="toast" id="toast"></div>
 <script>
 const KEY="mahau_corporate_production_v1";
@@ -312,6 +357,7 @@ let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
    "Priorizar oportunidades quentes","Envolver decisores finais","Executar follow-up ativo","Resolver objeções de preço, formato e data","Fechar contratos do mês-alvo","Preencher gaps do calendário","Preparar pipeline do próximo ciclo"
   ]}
 ]};
+state.deals.forEach(d=>{d.activities=d.activities||[];d.nextAction=d.nextAction||"Novo contato";d.priority=d.priority||"B";d.source=d.source||"Prospecção";});
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(v||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -319,14 +365,14 @@ function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style
 function setPage(page){
  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");
  document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
- const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",followup:"Follow-up",fechados:"Eventos Fechados",perdidos:"Eventos Perdidos",tarefas:"Tarefas",metas:"Metas",relatorios:"Relatório Executivo"};
+ const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",oportunidades:"Oportunidades",followup:"Follow-up",fechados:"Eventos Fechados",perdidos:"Eventos Perdidos",cancelados:"Eventos Cancelados",tarefas:"Tarefas",metas:"Metas",relatorios:"Relatório Executivo"};
  document.getElementById("pageTitle").textContent=names[page];
- if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies(); if(page==="followup")renderFollowup(); if(page==="fechados")renderClosed(); if(page==="perdidos")renderLost(); if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="relatorios")renderReport();if(page==="plano")renderPhases();
+ if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies(); if(page==="oportunidades")renderOpportunities(); if(page==="followup")renderFollowup(); if(page==="fechados")renderClosed(); if(page==="perdidos")renderLost(); if(page==="cancelados")renderCancelled(); if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="relatorios")renderReport();if(page==="plano")renderPhases();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 function renderAll(){renderKPIs();renderMiniPipeline();renderActions();renderRecent();renderPhases();}
 const stages=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado"];
-function activeDeals(){return state.deals.filter(d=>d.stage!=="Fechado"&&d.stage!=="Perdido")}
+function activeDeals(){return state.deals.filter(d=>!["Fechado","Perdido","Cancelado"].includes(d.stage))}
 function renderKPIs(){
  let pipe=activeDeals().reduce((a,d)=>a+d.value,0),won=state.deals.filter(d=>d.stage==="Fechado").reduce((a,d)=>a+d.value,0);
  document.getElementById("kPipeline").textContent=money(pipe);document.getElementById("kWon").textContent=money(won);
@@ -345,14 +391,39 @@ function renderPipeline(){
  document.getElementById("fullPipeline").innerHTML=stages.map(s=>{let ds=state.deals.filter(d=>d.stage===s&&(!q||d.company.toLowerCase().includes(q))&&(!own||d.owner===own));return `<div class="stage"><div class="stage-head"><span>${s}</span><span class="stage-count">${ds.length}</span></div>${ds.map(d=>`<div class="deal" style="cursor:pointer" onclick="editStage(${d.id})"><strong>${esc(d.company)}</strong><small>${money(d.value)}</small><small>${esc(d.follow||"Sem follow-up")}</small></div>`).join("")||'<div class="empty" style="padding:20px 0">Vazio</div>'}</div>`}).join("");
 }
 function editStage(id){
- let d=state.deals.find(x=>x.id===id), s=prompt("Nova etapa: Lead, Qualificado, Reunião, Proposta, Negociação, Fechado, Perdido",d.stage);
- if(!s||![...stages,"Perdido"].includes(s))return;
+ let d=state.deals.find(x=>x.id===id), s=prompt("Nova etapa: Lead, Qualificado, Reunião, Proposta, Negociação, Fechado, Perdido, Cancelado",d.stage);
+ if(!s||![...stages,"Perdido","Cancelado"].includes(s))return;
  d.stage=s;
  if(s==="Fechado"){d.closedAt=d.closedAt||localISO();d.lostReason="";}
- if(s==="Perdido"){d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";}
+ if(s==="Perdido"){d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";} if(s==="Cancelado"){d.cancelledAt=localISO();d.cancelReason=prompt("Motivo do cancelamento:",d.cancelReason||"")||"Não informado";}
  save();renderAll();renderPipeline();renderClosed();renderLost();renderFollowup();renderReport();toast("Etapa atualizada")
 }
-function renderCompanies(){let q=(document.getElementById("companySearch")?.value||"").toLowerCase();let cs=state.companies.filter(c=>c.name.toLowerCase().includes(q)||String(c.segment).toLowerCase().includes(q));document.getElementById("companiesTable").innerHTML=cs.length?`<table><thead><tr><th>Empresa</th><th>Segmento</th><th>Decisor</th><th>Canal</th><th>Prioridade</th></tr></thead><tbody>${cs.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.segment)}</td><td>${esc(c.contact)}<br><span class="muted">${esc(c.role)}</span></td><td>${esc(c.channel)}</td><td><span class="badge ${c.priority==="A"?"gold":""}">${esc(c.priority)}</span></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma empresa cadastrada.</div>'}
+function openDealDetail(id){
+ const d=state.deals.find(x=>x.id===id); if(!d)return; window.currentDetailId=id;
+ document.getElementById("detailTitle").textContent=d.company+" • "+d.type;
+ const idx=stages.indexOf(d.stage);
+ const steps=stages.map((st,i)=>'<span class="step '+(i<idx?'done ':'')+(st===d.stage?'current':'')+'">'+(i<idx?'✓ ':'')+esc(st)+'</span>').join('');
+ const acts=(d.activities||[]).slice().sort((x,y)=>(y.dateTime||'').localeCompare(x.dateTime||''));
+ const badgeClass=d.stage==='Negociação'?'gold':d.stage==='Fechado'?'green':(d.stage==='Perdido'||d.stage==='Cancelado'?'red':'');
+ const active=activeDeals().some(x=>x.id===id);
+ const actionButtons=active?'<button class="btn gold small" onclick="openActivity('+id+')">+ Registrar interação</button><button class="btn small" onclick="quickAdvance('+id+')">Avançar etapa</button><button class="btn success small" onclick="finishDeal('+id+')">Fechar evento</button><button class="btn danger small" onclick="loseDeal('+id+')">Perder</button><button class="btn small" onclick="cancelDeal('+id+')">Cancelar evento</button>':'<button class="btn small" onclick="reopenDeal('+id+')">Reabrir oportunidade</button>';
+ const history=acts.length?acts.map(x=>'<div class="timeline-item"><div class="timeline-date">'+esc(x.dateTime||x.date||'')+' • '+esc(x.type||'')+'</div><div class="timeline-title">'+esc(x.result||'Interação')+'</div><div class="timeline-note">'+esc(x.notes||'')+'</div>'+(x.nextAction?'<div class="timeline-note"><b>Próximo:</b> '+esc(x.nextAction)+' • '+esc(x.nextDate||'')+'</div>':'')+'</div>').join(''):'<div class="empty">Nenhuma interação registrada ainda.</div>';
+ document.getElementById('detailBody').innerHTML='<div class="detail-grid"><div><div class="card" style="padding:14px;margin-top:14px"><div class="eyebrow">STATUS</div><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px"><b>'+esc(d.stage)+'</b><span class="badge '+badgeClass+'">'+money(d.value)+'</span></div><div class="stepper">'+steps+'</div><div class="op-meta">'+(d.guests||0)+' convidados • evento '+esc(d.date||'sem data')+' • responsável '+esc(d.owner||'Comercial')+'</div></div><div class="card" style="padding:14px;margin-top:12px"><div class="eyebrow">PRÓXIMA AÇÃO</div><div style="font-size:15px;font-weight:750;margin-top:6px">'+esc(d.nextAction||'Novo contato')+'</div><div class="op-meta">'+esc(d.follow||'Sem data')+'</div><div class="op-actions">'+actionButtons+'</div></div></div><div><div class="card" style="padding:14px;margin-top:14px"><div class="eyebrow">DADOS</div><div class="op-meta" style="margin-top:10px">Contato<br><b style="color:var(--text)">'+esc(d.contact||'—')+'</b></div><div class="op-meta" style="margin-top:10px">Origem<br><b style="color:var(--text)">'+esc(d.source||'—')+'</b></div><div class="op-meta" style="margin-top:10px">Prioridade<br><b style="color:var(--gold2)">'+esc(d.priority||'—')+'</b></div><div class="op-meta" style="margin-top:10px">Observações<br><b style="color:var(--text);font-weight:500">'+esc(d.notes||'—')+'</b></div></div></div></div><div class="section-title"><h2>Histórico</h2><span class="muted">'+acts.length+' interações</span></div><div class="card"><div class="timeline">'+history+'</div></div>';
+ document.getElementById('detailModal').classList.add('show');
+}
+function closeDetail(){document.getElementById("detailModal").classList.remove("show")}
+function openActivity(id){document.getElementById("aDealId").value=id;document.getElementById("aNotes").value="";document.getElementById("aNextDate").value=localISO();document.getElementById("aOutcome").value="continue";toggleNextStage();document.getElementById("activityModal").classList.add("show")}
+function closeActivity(){document.getElementById("activityModal").classList.remove("show")}
+function toggleNextStage(){document.getElementById("nextStageWrap").style.display=document.getElementById("aOutcome").value==="advance"?"block":"none"}
+function saveActivity(e){e.preventDefault();const id=Number(document.getElementById("aDealId").value),d=state.deals.find(x=>x.id===id);if(!d)return;d.activities=d.activities||[];const nextDate=document.getElementById("aNextDate").value;const outcome=document.getElementById("aOutcome").value;const a={id:Date.now(),date:localISO(),dateTime:new Date().toLocaleString("pt-BR"),type:document.getElementById("aType").value,result:document.getElementById("aResult").value,notes:document.getElementById("aNotes").value,nextAction:document.getElementById("aNextAction").value,nextDate:nextDate};d.activities.push(a);d.lastContact=localISO();if(outcome==="continue"){d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="advance"){d.stage=document.getElementById("aNextStage").value;d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="closed"){d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";}if(outcome==="lost"){d.stage="Perdido";d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";d.follow="";d.nextAction="";}if(outcome==="cancelled"){d.stage="Cancelado";d.cancelledAt=localISO();d.cancelReason=prompt("Motivo do cancelamento:",d.cancelReason||"")||"Não informado";d.follow="";d.nextAction="";}save();closeActivity();renderAll();renderOpportunities();renderFollowup();renderClosed();renderLost();renderCancelled();renderReport();openDealDetail(id);toast("Interação registrada")}
+function quickAdvance(id){const d=state.deals.find(x=>x.id===id);const i=stages.indexOf(d.stage);if(i<0||i>=stages.length-2){toast("Use a ação de fechamento ou negociação");return}d.stage=stages[i+1];d.follow=localISO();d.nextAction="Novo contato";save();renderAll();renderOpportunities();renderPipeline();openDealDetail(id);toast("Etapa avançada")}
+function finishDeal(id){const d=state.deals.find(x=>x.id===id);if(!confirm("Confirmar evento como FECHADO?"))return;d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderClosed();renderReport();openDealDetail(id);toast("Evento fechado")}
+function loseDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo da perda:",d.lostReason||"");if(r===null)return;d.stage="Perdido";d.lostAt=localISO();d.lostReason=r||"Não informado";d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderLost();renderReport();openDealDetail(id);toast("Oportunidade perdida")}
+function cancelDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo do cancelamento:",d.cancelReason||"");if(r===null)return;d.stage="Cancelado";d.cancelledAt=localISO();d.cancelReason=r||"Não informado";d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderCancelled();renderReport();openDealDetail(id);toast("Evento cancelado")}
+function reopenDeal(id){const d=state.deals.find(x=>x.id===id);d.stage="Lead";d.follow=localISO();d.nextAction="Retomar contato";save();renderAll();renderOpportunities();renderPipeline();renderLost();renderCancelled();openDealDetail(id);toast("Oportunidade reaberta")}
+function renderOpportunities(){const q=(document.getElementById("oppSearch")?.value||"").toLowerCase(),f=document.getElementById("oppFilter")?.value||"active";let ds=state.deals.filter(d=>{const text=(d.company+" "+d.type).toLowerCase();if(q&&!text.includes(q))return false;if(f==="active"&&!activeDeals().includes(d))return false;if(f==="hot"&&d.stage!=="Negociação")return false;return true}).sort((a,b)=>(a.follow||"9999").localeCompare(b.follow||"9999"));document.getElementById("opportunitiesList").innerHTML=ds.length?ds.map(d=>`<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div></div><span class="badge ${d.stage==="Negociação"?"gold":d.stage==="Fechado"?"green":d.stage==="Perdido"||d.stage==="Cancelado"?"red":""}">${esc(d.stage)}</span></div><div class="op-meta" style="margin-top:10px"><b style="color:var(--text)">${esc(d.nextAction||"Próxima ação")}</b> • ${esc(d.follow||"Sem data")}</div><div class="op-actions"><button class="btn gold small" onclick="openDealDetail(${d.id})">Abrir oportunidade</button>${activeDeals().some(x=>x.id===d.id)?`<button class="btn small" onclick="openActivity(${d.id})">+ Follow-up</button>`:""}</div></div>`).join(""):'<div class="empty">Nenhuma oportunidade encontrada.</div>'}
+function newOpportunityFromCompany(name){openModal();document.getElementById("fCompany").value=name}
+function renderCompanies(){let q=(document.getElementById("companySearch")?.value||"").toLowerCase();let cs=state.companies.filter(c=>c.name.toLowerCase().includes(q)||String(c.segment).toLowerCase().includes(q));document.getElementById("companiesTable").innerHTML=cs.length?`<table><thead><tr><th>Empresa</th><th>Segmento</th><th>Decisor</th><th>Canal</th><th>Prioridade</th></tr></thead><tbody>${cs.map(c=>`<tr><td><b>${esc(c.name)}</b><br><button class="btn small" onclick="newOpportunityFromCompany('${esc(c.name).replace(/'/g,"\\'")}')">+ Oportunidade</button></td><td>${esc(c.segment)}</td><td>${esc(c.contact)}<br><span class="muted">${esc(c.role)}</span></td><td>${esc(c.channel)}</td><td><span class="badge ${c.priority==="A"?"gold":""}">${esc(c.priority)}</span></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma empresa cadastrada.</div>'}
 function renderTasks(){let f=document.getElementById("taskFilter")?.value||"",ts=state.tasks.filter(t=>!f||(f==="done"?t.done:!t.done));document.getElementById("tasksTable").innerHTML=ts.length?`<table><thead><tr><th></th><th>Tarefa</th><th>Responsável</th><th>Prazo</th></tr></thead><tbody>${ts.map(t=>`<tr><td><input type="checkbox" ${t.done?"checked":""} onchange="toggleTask(${t.id})" style="accent-color:var(--gold)"></td><td style="${t.done?"text-decoration:line-through;color:#777":""}">${esc(t.text)}</td><td>${esc(t.owner||"—")}</td><td>${esc(t.date||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma tarefa.</div>'}
 function toggleTask(id){let t=state.tasks.find(x=>x.id===id);t.done=!t.done;save();renderTasks();renderPhases();toast(t.done?"Tarefa concluída":"Tarefa reaberta")}
 function renderPhases(){let html=state.phases.map(p=>{let done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;return `<div class="phase"><div class="phase-head"><div><div class="date">${p.date}</div><h3>${p.name}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{let t=state.tasks.find(t=>t.phase===p.id&&t.index===i);let checked=t?.done||false;return `<div class="task ${checked?"done":""}"><input type="checkbox" ${checked?"checked":""} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`}).join("")}</div>`}).join("");document.getElementById("phases").innerHTML=html}
@@ -383,13 +454,14 @@ function renderLost(){
  document.getElementById("lostRevenue").textContent=money(revenue);document.getElementById("lostCount").textContent=ds.length;document.getElementById("lostAvg").textContent=money(avg);document.getElementById("lostReason").textContent=top?esc(top[0]):"—";
  document.getElementById("lostTable").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Valor</th><th>Data do evento</th><th>Motivo</th><th>Responsável</th></tr></thead><tbody>${ds.sort((a,b)=>(b.lostAt||"").localeCompare(a.lostAt||"")).map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td>${money(d.value)}</td><td>${esc(d.date||"—")}</td><td>${esc(d.lostReason||"Não informado")}</td><td>${esc(d.owner||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento perdido.</div>';
 }
+function renderCancelled(){const ds=state.deals.filter(d=>d.stage==="Cancelado"),revenue=ds.reduce((a,d)=>a+d.value,0);document.getElementById("cancelRevenue").textContent=money(revenue);document.getElementById("cancelTable").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Valor</th><th>Data</th><th>Motivo</th><th>Ação</th></tr></thead><tbody>${ds.sort((a,b)=>(b.cancelledAt||"").localeCompare(a.cancelledAt||"")).map(d=>`<tr><td><b>${esc(d.company)}</b></td><td>${esc(d.type)}</td><td>${money(d.value)}</td><td>${esc(d.date||"—")}</td><td>${esc(d.cancelReason||"Não informado")}</td><td><button class="btn small" onclick="openDealDetail(${d.id})">Abrir</button></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento cancelado.</div>'}
 function reportMetrics(){
  const deals=state.deals, active=activeDeals(), won=deals.filter(d=>d.stage==="Fechado"),lost=deals.filter(d=>d.stage==="Perdido"),neg=deals.filter(d=>d.stage==="Negociação"),proposal=deals.filter(d=>d.stage==="Proposta");
  const sum=a=>a.reduce((x,d)=>x+d.value,0);return {deals,active,won,lost,neg,proposal,pipeline:sum(active),wonValue:sum(won),lostValue:sum(lost),negValue:sum(neg),proposalValue:sum(proposal),goal:state.goal,conversion:deals.length?won.length/deals.length*100:0};
 }
 function renderReport(){
  const m=reportMetrics(), pct=m.goal?Math.min(100,m.wonValue/m.goal*100):0;
- const topStages=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado","Perdido"].map(s=>`<div class="card"><div class="kpi-label">${s}</div><div class="kpi-value" style="font-size:21px">${state.deals.filter(d=>d.stage===s).length}</div><div class="kpi-note">${money(state.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0))}</div></div>`).join("");
+ const topStages=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado","Perdido","Cancelado"].map(s=>`<div class="card"><div class="kpi-label">${s}</div><div class="kpi-value" style="font-size:21px">${state.deals.filter(d=>d.stage===s).length}</div><div class="kpi-note">${money(state.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0))}</div></div>`).join("");
  document.getElementById("reportPreview").innerHTML=`
  <div class="grid kpis">
   <div class="card"><div class="kpi-label">Pipeline ativo</div><div class="kpi-value">${money(m.pipeline)}</div></div>
@@ -418,7 +490,7 @@ async function generatePDF(){
  const cards=[["PIPELINE",m.pipeline],["FECHADO",m.wonValue],["NEGOCIAÇÃO",m.negValue],["PERDIDO",m.lostValue]];
  let x=16;cards.forEach((c,i)=>{doc.setFillColor(18,18,18);doc.roundedRect(x,50,42,27,4,4,"F");doc.setTextColor(...gray);doc.setFontSize(7);doc.text(c[0],x+5,57);doc.setTextColor(...white);doc.setFontSize(11);doc.setFont("helvetica","bold");doc.text(money(c[1]),x+5,68);x+=46});
  doc.setTextColor(...gold);doc.setFontSize(12);doc.text("VISÃO DO FUNIL",16,90);
- const rows=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado","Perdido"].map(s=>[s,String(state.deals.filter(d=>d.stage===s).length),money(state.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0))]);
+ const rows=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado","Perdido","Cancelado"].map(s=>[s,String(state.deals.filter(d=>d.stage===s).length),money(state.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0))]);
  if(doc.autoTable) doc.autoTable({startY:96,head:[["Etapa","Eventos","Valor"]],body:rows,theme:"grid",styles:{fontSize:8,textColor:white,fillColor:[15,15,15],lineColor:[50,50,50]},headStyles:{fillColor:gold,textColor:black},margin:{left:16,right:16}});
  let y=doc.lastAutoTable?doc.lastAutoTable.finalY+14:150;
  doc.setTextColor(...gold);doc.setFontSize(12);doc.text("EVENTOS FECHADOS",16,y);y+=6;
@@ -448,8 +520,8 @@ function renderClosed(){
 }
 function renderGoals(){let won=state.deals.filter(d=>d.stage==="Fechado").reduce((a,d)=>a+d.value,0),pct=state.goal?Math.min(100,won/state.goal*100):0,active=activeDeals().length,closed=state.deals.filter(d=>d.stage==="Fechado").length;document.getElementById("goalBig").textContent=money(state.goal);document.getElementById("closedBig").textContent=closed;document.getElementById("conversionBig").textContent=(state.deals.length?Math.round(closed/state.deals.length*100):0)+"%";document.getElementById("goalPct").textContent=Math.round(pct)+"%";document.getElementById("goalBar").style.width=pct+"%"}
 function setGoal(){let n=prompt("Meta de faturamento do mês-alvo (R$)",state.goal);if(n!==null&&!isNaN(n)){state.goal=Number(n);save();renderAll();renderGoals();toast("Meta atualizada")}}
-function openModal(){document.getElementById("modal").classList.add("show")}function closeModal(){document.getElementById("modal").classList.remove("show")}
-function saveDeal(e){e.preventDefault();state.deals.push({id:Date.now(),company:fCompany.value,contact:fContact.value,owner:fOwner.value||"Comercial",type:fType.value,date:fDate.value,guests:Number(fGuests.value||0),value:Number(fValue.value||0),follow:fFollow.value,stage:"Lead",notes:fNotes.value});save();e.target.reset();closeModal();renderAll();toast("Oportunidade criada")}
+function openModal(){document.getElementById("fFollow").value=localISO();document.getElementById("modal").classList.add("show")}function closeModal(){document.getElementById("modal").classList.remove("show")}
+function saveDeal(e){e.preventDefault();const id=Date.now(),follow=fFollow.value||localISO();state.deals.push({id,company:fCompany.value,contact:fContact.value,owner:fOwner.value||"Comercial",type:fType.value,date:fDate.value,guests:Number(fGuests.value||0),value:Number(fValue.value||0),follow,nextAction:fNextAction.value,source:fSource.value,priority:fPriority.value,stage:"Lead",notes:fNotes.value,activities:[],createdAt:localISO(),lastContact:""});save();e.target.reset();closeModal();renderAll();renderOpportunities();toast("Oportunidade criada e enviada para Follow-up")}
 function openCompanyModal(){document.getElementById("companyModal").classList.add("show")}function closeCompanyModal(){document.getElementById("companyModal").classList.remove("show")}
 function saveCompany(e){e.preventDefault();state.companies.push({id:Date.now(),name:cName.value,segment:cSegment.value,contact:cContact.value,role:cRole.value,channel:cChannel.value,priority:cPriority.value});save();e.target.reset();closeCompanyModal();renderCompanies();toast("Empresa adicionada")}
 function openTaskModal(){document.getElementById("taskModal").classList.add("show")}function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
