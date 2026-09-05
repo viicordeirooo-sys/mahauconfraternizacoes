@@ -488,6 +488,30 @@ function whatsappNumber(contact){
  return (n.length===10||n.length===11)?'55'+n:'';
 }
 function whatsappUrl(contact){const n=whatsappNumber(contact);return n?'https://wa.me/'+n:''}
+function renderPhases(){
+ const phases=Array.isArray(state.phases)?state.phases:[];
+ const html=phases.map(p=>{
+  const done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;
+  return `<div class="phase"><div class="phase-head"><div><div class="date">${esc(p.date)}</div><h3>${esc(p.name)}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{
+   const t=state.tasks.find(t=>t.phase===p.id&&t.index===i);
+   const checked=!!t?.done;
+   return `<div class="task ${checked?'done':''}"><input type="checkbox" ${checked?'checked':''} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`;
+  }).join('')}</div>`;
+ }).join('');
+ const el=document.getElementById('phases');
+ if(el) el.innerHTML=html;
+}
+function togglePhaseTask(phase,index){
+ const existing=state.tasks.find(t=>t.phase===phase&&t.index===index);
+ if(existing){existing.done=!existing.done;existing.updatedAt=new Date().toISOString();persistTask(existing);}
+ else {
+  const task={id:Date.now(),phase,index,done:true};
+  state.tasks.push(task);
+  persistTask(task);
+ }
+ save();
+ renderPhases();
+}
 function renderOpportunities(){
  const q=(document.getElementById("oppSearch")?.value||"").toLowerCase(), active=activeDeals();
  let ds=active.filter(d=>{
