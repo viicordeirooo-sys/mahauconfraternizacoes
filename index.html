@@ -105,12 +105,15 @@ html,body{min-width:0;overflow-x:hidden}
   .page{min-width:0;overflow-x:hidden;touch-action:pan-y;overscroll-behavior-x:none}
   .main{overflow-x:hidden;overscroll-behavior-x:none}
   .nav-scroll{touch-action:pan-x;overscroll-behavior-x:contain}
-  .stepper{touch-action:pan-x;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none}
+  .stepper{width:100%;min-width:0;display:flex;flex-wrap:nowrap;gap:6px;touch-action:pan-x pan-y;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;overscroll-behavior-y:auto;scrollbar-width:none}
   .stepper::-webkit-scrollbar{display:none}
-  .op-actions{min-width:0}
+  .op-actions{min-width:0;width:100%;display:flex;flex-wrap:wrap;gap:8px}
+  .op-actions .btn{min-width:0;max-width:100%;flex:1 1 140px;white-space:normal}
+  .detail-grid,.detail-grid>*{min-width:0;max-width:100%}
+  .detail-grid .card{min-width:0;max-width:100%;overflow:hidden}
   .op-actions .btn{touch-action:manipulation}
   .modal{padding:10px;align-items:flex-end;overflow:hidden;overscroll-behavior:none;touch-action:none}
-  .modal-box{width:100%;max-width:100%;max-height:calc(100svh - 20px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;border-radius:18px 18px 0 0;padding:18px 18px 28px;min-width:0}
+  .modal-box{width:100%;max-width:100%;max-height:calc(100svh - 20px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;border-radius:18px 18px 0 0;padding:18px 18px 28px;min-width:0}
   .modal-box::-webkit-scrollbar{width:5px}
   .modal-box::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:10px}
   .form{grid-template-columns:1fr;gap:10px}
