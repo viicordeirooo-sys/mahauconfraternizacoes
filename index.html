@@ -31,6 +31,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px 10px;border-bottom:
 .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px}.input,.select,.textarea{background:#0d0d0d;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}.input:focus,.select:focus,.textarea:focus{border-color:var(--gold)}.input{min-width:220px}
 .modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal.show{display:flex}.modal-box{width:min(620px,100%);background:#111;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 80px #000}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.close{background:none;border:0;color:var(--muted);font-size:22px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.form .full{grid-column:1/-1}.form label{font-size:10px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}.form input,.form select,.form textarea{width:100%}.form textarea{min-height:80px;resize:vertical}.empty{text-align:center;color:var(--muted);padding:35px 10px}
 .toast{position:fixed;right:22px;bottom:22px;background:#181818;border:1px solid var(--gold);padding:12px 16px;border-radius:10px;display:none;z-index:80;font-size:12px}
+.follow-periods{display:flex;gap:6px;margin:10px 0 14px;padding:4px;background:#0d0d0d;border:1px solid var(--line);border-radius:12px;width:max-content;max-width:100%}.period-btn{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:9px;font-weight:650}.period-btn.active{background:var(--gold);color:#080808}.period-btn:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 @media(max-width:1000px){.sidebar{width:70px}.brand{padding:8px 5px 25px}.brand b{font-size:19px}.brand span{display:none}.nav button span{display:none}.nav button{justify-content:center}.main{margin-left:70px;width:calc(100% - 70px);padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
 @media(max-width:600px){.top{display:block}.actions{margin-top:15px}.kpis{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}.form .full{grid-column:auto}}
 
@@ -170,8 +171,13 @@ html,body{min-width:0;overflow-x:hidden}
     <div class="title" style="font-size:26px;margin-top:5px">Follow Up</div>
     <div class="muted">Aqui o comercial trabalha cada venda: próxima ação, histórico, follow-ups e resultado.</div>
   </div>
-  <div class="toolbar"><input class="input" id="oppSearch" placeholder="Buscar empresa ou evento..." oninput="renderOpportunities()"><select class="select" id="oppFilter" onchange="renderOpportunities()"><option value="today">Hoje</option><option value="late">Atrasados</option><option value="active">Em aberto</option><option value="hot">Negociação</option><option value="all">Todas</option></select><button class="btn gold" onclick="openModal()">+ Nova oportunidade</button></div>
-  <div class="muted" style="font-size:11px;margin:-5px 0 13px">A tela começa nas ações de hoje. Registre o contato, defina o próximo passo e siga.</div>
+  <div class="toolbar"><input class="input" id="oppSearch" placeholder="Buscar empresa ou evento..." oninput="renderOpportunities()"></div>
+  <div class="follow-periods" role="tablist" aria-label="Período das ações">
+    <button type="button" class="period-btn active" data-period="day" onclick="setFollowPeriod('day')">Hoje</button>
+    <button type="button" class="period-btn" data-period="week" onclick="setFollowPeriod('week')">Semana</button>
+    <button type="button" class="period-btn" data-period="month" onclick="setFollowPeriod('month')">Mês</button>
+  </div>
+  <div id="followPeriodInfo" class="muted" style="font-size:11px;margin:-2px 0 13px"></div>
   <div id="opportunitiesList"></div>
 </section>
 
@@ -335,28 +341,47 @@ function quickAdvance(id){const d=state.deals.find(x=>x.id===id);const i=stages.
 function finishDeal(id){const d=state.deals.find(x=>x.id===id);if(!confirm("Confirmar evento como FECHADO?"))return;d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderClosed();renderReport();openDealDetail(id);toast("Evento fechado")}
 function loseDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo da perda:",d.lostReason||"");if(r===null)return;d.stage="Perdido";d.lostAt=localISO();d.lostReason=r||"Não informado";d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderLost();renderReport();openDealDetail(id);toast("Oportunidade perdida")}
 function reopenDeal(id){const d=state.deals.find(x=>x.id===id);d.stage="Lead";d.follow=localISO();d.nextAction="Retomar contato";save();renderAll();renderOpportunities();renderLost();openDealDetail(id);toast("Oportunidade reaberta")}
+let followPeriod="day";
+function setFollowPeriod(period){followPeriod=period;document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===period));renderOpportunities()}
+function startOfWeek(d=new Date()){const x=new Date(d);const day=x.getDay();const diff=day===0?-6:1-day;x.setDate(x.getDate()+diff);x.setHours(0,0,0,0);return x}
+function endOfWeek(d=new Date()){const x=startOfWeek(d);x.setDate(x.getDate()+6);x.setHours(23,59,59,999);return x}
+function parseDateOnly(iso){if(!iso)return null;const [y,m,day]=iso.split('-').map(Number);return new Date(y,m-1,day)}
+function sameMonth(iso,d=new Date()){const x=parseDateOnly(iso);return x&&x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth()}
+function inCurrentWeek(iso){const x=parseDateOnly(iso);if(!x)return false;return x>=startOfWeek()&&x<=endOfWeek()}
+function fmtDay(iso){if(!iso)return 'Sem data';const x=parseDateOnly(iso);return x.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}).replace('.','')}
+function fmtLongDate(iso){if(!iso)return 'Sem data';const x=parseDateOnly(iso);return x.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}
 function renderOpportunities(){
- const q=(document.getElementById("oppSearch")?.value||"").toLowerCase(),f=document.getElementById("oppFilter")?.value||"today";
- const active=activeDeals();
- let ds=state.deals.filter(d=>{
+ const q=(document.getElementById("oppSearch")?.value||"").toLowerCase(), active=activeDeals();
+ let ds=active.filter(d=>{
    const text=(d.company+" "+d.type+" "+(d.contact||"")).toLowerCase();
    if(q&&!text.includes(q))return false;
-   if(f==="today"&&!(d.follow&&daysFromToday(d.follow)===0&&active.includes(d)))return false;
-   if(f==="late"&&!(d.follow&&daysFromToday(d.follow)<0&&active.includes(d)))return false;
-   if(f==="active"&&!active.includes(d))return false;
-   if(f==="hot"&&d.stage!=="Negociação")return false;
-   return true;
- }).sort((a,b)=>{
-   const ad=a.follow?daysFromToday(a.follow):99999,bd=b.follow?daysFromToday(b.follow):99999;
-   return ad-bd || (a.company||"").localeCompare(b.company||"");
- });
- document.getElementById("opportunitiesList").innerHTML=ds.length?ds.map(d=>{
-   const n=d.follow?daysFromToday(d.follow):99999;
-   const urgency=n<0?'red':n===0?'gold':'';
-   const dateLabel=n<0?`Atrasado • ${d.follow}`:n===0?'Hoje':d.follow||'Sem próxima data';
-   return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div></div><span class="badge ${d.stage==="Negociação"?"gold":d.stage==="Fechado"?"green":d.stage==="Perdido"?"red":""}">${esc(d.stage)}</span></div><div class="op-meta" style="margin-top:10px"><b style="color:var(--text)">${esc(d.nextAction||"Definir próxima ação")}</b> • <span class="${urgency?`badge ${urgency}`:''}">${esc(dateLabel)}</span></div><div class="op-actions"><button class="btn gold small" onclick="openActivity(${d.id})">Executar ação</button><button class="btn small" onclick="openDealDetail(${d.id})">Ver histórico</button></div></div>`;
- }).join(""):'<div class="empty">Nenhuma oportunidade para este filtro.</div>';
+   if(followPeriod==="day") return d.follow&&daysFromToday(d.follow)===0;
+   if(followPeriod==="week") return d.follow&&inCurrentWeek(d.follow);
+   return d.follow&&sameMonth(d.follow);
+ }).sort((a,b)=>(a.follow||'9999-99-99').localeCompare(b.follow||'9999-99-99')||(a.company||'').localeCompare(b.company||''));
+ const todayCount=active.filter(d=>d.follow&&daysFromToday(d.follow)===0).length;
+ const lateCount=active.filter(d=>d.follow&&daysFromToday(d.follow)<0).length;
+ const periodStart=followPeriod==='week'?startOfWeek():new Date(new Date().getFullYear(),new Date().getMonth(),1);
+ const periodEnd=followPeriod==='week'?endOfWeek():new Date(new Date().getFullYear(),new Date().getMonth()+1,0);
+ let info='';
+ if(followPeriod==='day') info=`Hoje • ${fmtLongDate(localISO())} • ${todayCount} ação${todayCount===1?'':'ões'}${lateCount?` • ${lateCount} atrasada${lateCount===1?'':'s'}`:''}`;
+ if(followPeriod==='week') info=`Visão geral • ${fmtDay(localISO(periodStart))} a ${fmtDay(localISO(periodEnd))} • ${ds.length} ação${ds.length===1?'':'ões'}`;
+ if(followPeriod==='month') info=`Visão geral • ${new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} • ${ds.length} ação${ds.length===1?'':'ões'}`;
+ document.getElementById('followPeriodInfo').textContent=info;
+ if(followPeriod==='day'){
+   const overdue=active.filter(d=>d.follow&&daysFromToday(d.follow)<0).filter(d=>{const text=(d.company+" "+d.type+" "+(d.contact||"")).toLowerCase();return !q||text.includes(q)}).sort((a,b)=>(a.follow||'').localeCompare(b.follow||''));
+   if(!ds.length&&!overdue.length){document.getElementById('opportunitiesList').innerHTML='<div class="empty">Nenhuma ação programada para hoje.</div>';return}
+   let html='';
+   if(overdue.length) html+=`<div class="section-title"><h2>Atrasadas</h2><span class="badge red">${overdue.length}</span></div>`+overdue.map(d=>followCard(d,true,true)).join('');
+   html+=`<div class="section-title"><h2>Hoje</h2><span class="badge gold">${ds.length}</span></div>`+ds.map(d=>followCard(d,false,true)).join('');
+   document.getElementById('opportunitiesList').innerHTML=html;
+ }else{
+   if(!ds.length){document.getElementById('opportunitiesList').innerHTML='<div class="empty">Nenhuma ação programada neste período.</div>';return}
+   const groups={};ds.forEach(d=>(groups[d.follow]??=[]).push(d));
+   document.getElementById('opportunitiesList').innerHTML=Object.keys(groups).sort().map(date=>`<div class="section-title"><h2>${fmtLongDate(date)}</h2><span class="badge">${groups[date].length}</span></div>`+groups[date].map(d=>followCard(d,false,false)).join('')).join('');
+ }
 }
+function followCard(d,late=false,actionable=false){const n=d.follow?daysFromToday(d.follow):99999;const dateLabel=late?`Atrasada • ${d.follow}`:(n===0?'Hoje':d.follow||'Sem data');const badge=d.stage==='Negociação'?'gold':d.stage==='Perdido'?'red':'';return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div></div><span class="badge ${badge}">${esc(d.stage)}</span></div><div class="op-meta" style="margin-top:10px"><b style="color:var(--text)">${esc(d.nextAction||'Definir próxima ação')}</b> • <span class="${late?'badge red':n===0?'badge gold':''}">${esc(dateLabel)}</span></div><div class="op-actions">${actionable?`<button class="btn gold small" onclick="openActivity(${d.id})">Executar ação</button>`:''}<button class="btn small" onclick="openDealDetail(${d.id})">Ver histórico</button></div></div>`}
 function renderPhases(){let html=state.phases.map(p=>{let done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;return `<div class="phase"><div class="phase-head"><div><div class="date">${p.date}</div><h3>${p.name}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{let t=state.tasks.find(t=>t.phase===p.id&&t.index===i);let checked=t?.done||false;return `<div class="task ${checked?"done":""}"><input type="checkbox" ${checked?"checked":""} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`}).join("")}</div>`}).join("");document.getElementById("phases").innerHTML=html}
 function togglePhaseTask(pid,index){let t=state.tasks.find(x=>x.phase===pid&&x.index===index);if(!t){t={id:Date.now(),text:state.phases.find(p=>p.id===pid).tasks[index],owner:"Comercial",date:"",done:false,phase:pid,index};state.tasks.push(t)}t.done=!t.done;save();renderPhases();toast(t.done?"Etapa concluída":"Etapa reaberta")}
 
