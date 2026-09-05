@@ -621,13 +621,13 @@ const firebaseConfig = {
 };
 
 try {
-  const [{initializeApp},{initializeAuth,browserLocalPersistence,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField}] = await Promise.all([
+  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField}] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js"),
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js")
   ]);
   const app=initializeApp(firebaseConfig);
-  const auth=initializeAuth(app,{persistence:browserLocalPersistence});
+  const auth=getAuth(app);
   const db=getFirestore(app);
   window.MAHAU_FIREBASE={app,auth,db};
   window.MAHAU_FIREBASE_READY=true;
@@ -647,11 +647,8 @@ try {
     e.preventDefault();
     const btn=document.getElementById("loginBtn"),err=document.getElementById("authError"),load=document.getElementById("authLoading");
     err.style.display="none";load.style.display="block";btn.disabled=true;
-    try{
-      const login=signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value.trim(),document.getElementById("loginPassword").value);
-      const timeout=new Promise((_,reject)=>setTimeout(()=>reject(Object.assign(new Error("timeout"),{code:"auth/network-request-failed"})),15000));
-      await Promise.race([login,timeout]);
-    }catch(ex){err.textContent=authMessage(ex);err.style.display="block";}
+    try{await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value.trim(),document.getElementById("loginPassword").value);}
+    catch(ex){err.textContent=authMessage(ex);err.style.display="block";}
     finally{load.style.display="none";btn.disabled=false;}
   };
   window.firebaseLogout=async function(){await signOut(auth);};
@@ -728,19 +725,7 @@ try {
     return true;
   }
 
-  let authSettled=false;
-  const authStartupTimer=setTimeout(()=>{
-    if(!authSettled){
-      const load=document.getElementById("authLoading");
-      const err=document.getElementById("authError");
-      load.style.display="none";
-      err.textContent="Não foi possível conectar ao Firebase agora. Atualize a página e tente novamente.";
-      err.style.display="block";
-    }
-  },12000);
   onAuthStateChanged(auth,async user=>{
-    authSettled=true;
-    clearTimeout(authStartupTimer);
     const screen=document.getElementById("authScreen");
     if(user){
       window.MAHAU_FIREBASE_AUTH_USER=user;
