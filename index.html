@@ -98,6 +98,8 @@ html,body{min-width:0;overflow-x:hidden}
   .toolbar{display:grid;grid-template-columns:1fr auto;gap:8px}
   .toolbar .input{min-width:0;width:100%}
   .input,.select,.textarea{font-size:12px}
+  /* iPhone: 16px prevents Safari from auto-zooming when a form field is focused. */
+  .form .input,.form .select,.form .textarea,#loginEmail,#loginPassword{font-size:16px!important}
   /* Modal: one scroll only on mobile; the page and bottom navigation stay out of the way. */
   body.modal-open{overflow:hidden;width:100%;}
   body.modal-open .sidebar{display:none!important}
@@ -112,6 +114,7 @@ html,body{min-width:0;overflow-x:hidden}
   .detail-grid,.detail-grid>*{min-width:0;max-width:100%}
   .detail-grid .card{min-width:0;max-width:100%;overflow:hidden}
   .op-actions .btn{touch-action:manipulation}
+  .whatsapp-btn{border-color:#245c3a!important;color:var(--green)!important}
   .modal{padding:10px;align-items:flex-end;overflow:hidden;overscroll-behavior:none;touch-action:auto}
   .modal-box{width:100%;max-width:100%;max-height:calc(100svh - 20px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;border-radius:18px 18px 0 0;padding:18px 18px 28px;min-width:0}
   .modal-box::-webkit-scrollbar{width:5px}
@@ -283,7 +286,7 @@ body:not(.auth-ready) .app{display:none!important}
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h3>Nova oportunidade</h3><button class="close" onclick="closeModal()">×</button></div>
 <form class="form" onsubmit="saveDeal(event)">
 <div><label>Empresa</label><input class="input" id="fCompany" required></div>
-<div><label>Contato / decisor</label><input class="input" id="fContact"></div>
+<div><label>Contato / decisor</label><input class="input" id="fContact" type="text" autocomplete="off" placeholder="Nome • (11) 99999-9999"></div>
 <div><label>Responsável</label><input class="input" id="fOwner"></div>
 <div><label>Evento</label><select class="select" id="fType"><option>Confraternização corporativa</option><option>Festa de fim de ano</option><option>Evento de clientes</option><option>Lançamento / marca</option><option>Premiação</option><option>Evento interno</option><option>Evento institucional</option></select></div>
 <div><label>Data</label><input class="input" id="fDate" type="date"></div>
@@ -457,6 +460,13 @@ function sameMonth(iso,d=new Date()){const x=parseDateOnly(iso);return x&&x.getF
 function inCurrentWeek(iso){const x=parseDateOnly(iso);if(!x)return false;return x>=startOfWeek()&&x<=endOfWeek()}
 function fmtDay(iso){if(!iso)return 'Sem data';const x=parseDateOnly(iso);return x.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}).replace('.','')}
 function fmtLongDate(iso){if(!iso)return 'Sem data';const x=parseDateOnly(iso);return x.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}
+function whatsappNumber(contact){
+ const digits=String(contact||'').replace(/\D/g,'');
+ if(!digits)return '';
+ let n=digits.startsWith('55')?digits.slice(2):digits;
+ return (n.length===10||n.length===11)?'55'+n:'';
+}
+function whatsappUrl(contact){const n=whatsappNumber(contact);return n?'https://wa.me/'+n:''}
 function renderOpportunities(){
  const q=(document.getElementById("oppSearch")?.value||"").toLowerCase(), active=activeDeals();
  let ds=active.filter(d=>{
@@ -488,16 +498,7 @@ function renderOpportunities(){
    document.getElementById('opportunitiesList').innerHTML=Object.keys(groups).sort().map(date=>`<div class="section-title"><h2>${fmtLongDate(date)}</h2><span class="badge">${groups[date].length}</span></div>`+groups[date].map(d=>followCard(d,false,false)).join('')).join('');
  }
 }
-function followCard(d,late=false,actionable=false){const n=d.follow?daysFromToday(d.follow):99999;const dateLabel=late?`Atrasada • ${d.follow}`:(n===0?'Hoje':d.follow||'Sem data');const badge=d.stage==='Negociação'?'gold':d.stage==='Perdido'?'red':'';return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div></div><span class="badge ${badge}">${esc(d.stage)}</span></div><div class="op-meta" style="margin-top:10px"><b style="color:var(--text)">${esc(d.nextAction||'Definir próxima ação')}</b> • <span class="${late?'badge red':n===0?'badge gold':''}">${esc(dateLabel)}</span></div><div class="op-actions">${actionable?`<button class="btn gold small" onclick="openActivity(${d.id})">Executar ação</button>`:''}<button class="btn small" onclick="openDealDetail(${d.id})">Ver histórico</button></div></div>`}
-function renderPhases(){let html=state.phases.map(p=>{let done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;return `<div class="phase"><div class="phase-head"><div><div class="date">${p.date}</div><h3>${p.name}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{let t=state.tasks.find(t=>t.phase===p.id&&t.index===i);let checked=t?.done||false;return `<div class="task ${checked?"done":""}"><input type="checkbox" ${checked?"checked":""} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`}).join("")}</div>`}).join("");document.getElementById("phases").innerHTML=html}
-function togglePhaseTask(pid,index){let t=state.tasks.find(x=>x.phase===pid&&x.index===index);if(!t){t={id:Date.now(),text:state.phases.find(p=>p.id===pid).tasks[index],owner:"Comercial",date:"",done:false,phase:pid,index};state.tasks.push(t)}t.done=!t.done;save();persistTask(t);renderPhases();toast(t.done?"Etapa concluída":"Etapa reaberta")}
-
-function renderLost(){
- const ds=state.deals.filter(d=>d.stage==="Perdido"), revenue=ds.reduce((a,d)=>a+d.value,0),avg=ds.length?revenue/ds.length:0;
- const reasons={};ds.forEach(d=>{let r=d.lostReason||"Não informado";reasons[r]=(reasons[r]||0)+1});let top=Object.entries(reasons).sort((a,b)=>b[1]-a[1])[0];
- document.getElementById("lostRevenue").textContent=money(revenue);document.getElementById("lostCount").textContent=ds.length;document.getElementById("lostAvg").textContent=money(avg);document.getElementById("lostReason").textContent=top?esc(top[0]):"—";
- document.getElementById("lostTable").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Valor</th><th>Data do evento</th><th>Motivo</th><th>Responsável</th></tr></thead><tbody>${ds.sort((a,b)=>(b.lostAt||"").localeCompare(a.lostAt||"")).map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td>${money(d.value)}</td><td>${esc(d.date||"—")}</td><td>${esc(d.lostReason||"Não informado")}</td><td>${esc(d.owner||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento perdido.</div>';
-}
+function followCard(d,late=false,actionable=false){const n=d.follow?daysFromToday(d.follow):99999;const dateLabel=late?`Atrasada • ${d.follow}`:(n===0?'Hoje':d.follow||'Sem data');const badge=d.stage==='Negociação'?'gold':d.stage==='Perdido'?'red':'';const wa=whatsappUrl(d.contact);return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div>${d.contact?`<div class="op-meta" style="margin-top:6px">${esc(d.contact)}</div>`:''}</div><span class="badge ${badge}">${esc(d.stage)}</span></div><div class="op-meta" style="margin-top:10px"><b style="color:var(--text)">${esc(d.nextAction||'Definir próxima ação')}</b> • <span class="${late?'badge red':n===0?'badge gold':''}">${esc(dateLabel)}</span></div><div class="op-actions">${actionable?`<button class="btn gold small" onclick="openActivity(${d.id})">Executar ação</button>`:''}${wa?`<button class="btn small whatsapp-btn" onclick="window.open('${wa}','_blank','noopener')">WhatsApp</button>`:''}<button class="btn small" onclick="openDealDetail(${d.id})">Ver histórico</button></div></div>`}
 function reportMetrics(){
  const deals=state.deals, active=activeDeals(), won=deals.filter(d=>d.stage==="Fechado"),lost=deals.filter(d=>d.stage==="Perdido"),neg=deals.filter(d=>d.stage==="Negociação"),proposal=deals.filter(d=>d.stage==="Proposta");
  const sum=a=>a.reduce((x,d)=>x+d.value,0);return {deals,active,won,lost,neg,proposal,openValue:sum(active),wonValue:sum(won),lostValue:sum(lost),negValue:sum(neg),proposalValue:sum(proposal),goal:state.goal,conversion:deals.length?won.length/deals.length*100:0};
