@@ -582,19 +582,24 @@ const firebaseConfig = {
 };
 
 try {
-  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField}] = await Promise.all([
+  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField},{initializeAppCheck,ReCaptchaEnterpriseProvider}] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js"),
-    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js")
+    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"),
+    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app-check.js")
   ]);
   const app=initializeApp(firebaseConfig);
+
+  // O App Check precisa ser inicializado ANTES de Auth e Firestore para que
+  // essas requisições já nasçam com o token de App Check.
+  const APP_CHECK_SITE_KEY="6LefSastAAAAAIX6yq-qgVnRS-8WGORm18IgOpp0";
+  const appCheck=initializeAppCheck(app,{
+    provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+    isTokenAutoRefreshEnabled:true
+  });
+
   const auth=getAuth(app);
   const db=getFirestore(app);
-  // App Check fica pronto para ativação assim que a chave reCAPTCHA Enterprise for cadastrada.
-  // Deixe vazio durante o desenvolvimento; depois preencha e ative a enforcement no Firebase Console.
-  const APP_CHECK_SITE_KEY="6LefSastAAAAAIX6yq-qgVnRS-8WGORm18IgOpp0";
-  const {initializeAppCheck,ReCaptchaEnterpriseProvider}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app-check.js");
-  initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});
   window.MAHAU_FIREBASE={app,auth,db};
   window.MAHAU_FIREBASE_READY=true;
 
