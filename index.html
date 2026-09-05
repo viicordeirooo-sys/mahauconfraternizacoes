@@ -583,10 +583,10 @@ const firebaseConfig = {
 
 try {
   const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField},{initializeAppCheck,ReCaptchaEnterpriseProvider}] = await Promise.all([
-    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"),
-    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js"),
-    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"),
-    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app-check.js")
+    import("https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js"),
+    import("https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js"),
+    import("https://www.gstatic.com/firebasejs/12.16.0/firebase-app-check.js")
   ]);
   const app=initializeApp(firebaseConfig);
 
