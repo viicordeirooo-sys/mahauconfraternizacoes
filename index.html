@@ -123,9 +123,35 @@ html,body{min-width:0;overflow-x:hidden}
   .main{padding:22px}
   .kpis{grid-template-columns:repeat(3,1fr)}
 }
+
+/* Firebase auth gate */
+body:not(.auth-ready) .app{display:none!important}
+#authScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 20px 80px #000}
+.auth-brand{font-size:24px;font-weight:800;letter-spacing:4px}.auth-brand span{display:block;color:var(--gold);font-size:10px;letter-spacing:2px;margin-top:5px}
+.auth-title{font-size:22px;margin:26px 0 6px}.auth-sub{color:var(--muted);font-size:12px;line-height:18px;margin-bottom:20px}
+.auth-error{color:var(--red);font-size:11px;line-height:16px;margin-top:10px;display:none}
+.auth-loading{color:var(--muted);font-size:11px;margin-top:10px;display:none}
+.auth-user{color:var(--muted);font-size:10px;margin-top:3px}
+@media(max-width:600px){#authScreen{align-items:flex-start;padding:70px 16px 20px}.auth-card{padding:22px}}
 </style>
 </head>
 <body>
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-brand">MAHAU<span>EVENTOS</span></div>
+    <div class="auth-title">Entrar no sistema</div>
+    <div class="auth-sub">Acesso restrito à equipe comercial. Entre com seu e-mail e senha.</div>
+    <form onsubmit="firebaseLogin(event)">
+      <div><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px">E-mail</label><input class="input" id="loginEmail" type="email" autocomplete="username" required style="width:100%"></div>
+      <div style="margin-top:12px"><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px">Senha</label><input class="input" id="loginPassword" type="password" autocomplete="current-password" required style="width:100%"></div>
+      <button id="loginBtn" class="btn gold" style="width:100%;margin-top:15px">Entrar</button>
+      <button type="button" class="btn" onclick="firebaseResetPassword()" style="width:100%;margin-top:8px">Esqueci minha senha</button>
+      <div id="authError" class="auth-error"></div>
+      <div id="authLoading" class="auth-loading">Conectando ao MAHAU Eventos…</div>
+    </form>
+  </div>
+</div>
 <div class="app">
 <aside class="sidebar">
   <div class="brand"><b>MAHAU</b><span>EVENTOS</span></div>
@@ -142,7 +168,7 @@ html,body{min-width:0;overflow-x:hidden}
 <main class="main">
 <header class="top">
   <div><div class="eyebrow">EVENTOS CORPORATIVOS</div><div class="title" id="pageTitle">Dashboard</div><div class="subtitle">Operação B2B • Setembro → Novembro 2026 • foco em contratos corporativos</div></div>
-  <div class="actions"><button class="btn" onclick="exportData()">Exportar</button><button id="newOppBtn" class="btn gold" onclick="openModal()">+ Nova oportunidade</button></div>
+  <div class="actions"><div style="text-align:right"><div id="authUser" class="auth-user"></div><button class="btn" onclick="firebaseLogout()" style="margin-top:5px">Sair</button></div><button class="btn" onclick="exportData()">Exportar</button><button id="newOppBtn" class="btn gold" onclick="openModal()">+ Nova oportunidade</button></div>
 </header>
 
 <section id="dashboard" class="page active">
@@ -310,7 +336,10 @@ let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
   ]}
 ]};
 state.deals.forEach(d=>{d.activities=d.activities||[];d.nextAction=d.nextAction||"Novo contato";d.priority=d.priority||"B";d.source=d.source||"Prospecção";});
-function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));
+  if(window.MAHAU_FIREBASE_API?.syncState && window.MAHAU_FIREBASE_AUTH_USER){window.MAHAU_FIREBASE_API.syncState(state).catch(e=>console.error("Firebase sync:",e));}
+}
 const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(v||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style.display="block";setTimeout(()=>x.style.display="none",1800)}
@@ -537,35 +566,107 @@ renderAll();
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script type="module">
-/*
-  FIREBASE — PRÓXIMA ETAPA
-  1) Crie um projeto no Firebase.
-  2) Ative Authentication > Email/Password.
-  3) Crie Firestore Database.
-  4) Cadastre o app Web.
-  5) Substitua os valores abaixo pelo Firebase Config.
-  NUNCA coloque senha de usuário aqui.
-*/
 const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI.firebaseapp.com",
-  projectId: "COLE_AQUI",
-  storageBucket: "COLE_AQUI.appspot.com",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI"
+  apiKey: "AIzaSyAmS9cFXDt7E92brtLflTVR5BSK5WhRG6Q",
+  authDomain: "mahau-eventos.firebaseapp.com",
+  projectId: "mahau-eventos",
+  storageBucket: "mahau-eventos.firebasestorage.app",
+  messagingSenderId: "8311503205",
+  appId: "1:8311503205:web:2a7188bf92e753e70a098c"
 };
-window.MAHAU_FIREBASE_CONFIG = firebaseConfig;
-window.MAHAU_FIREBASE_READY = false;
-if(firebaseConfig.apiKey !== "COLE_AQUI"){
-  try{
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
-    const { getAuth } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js");
-    const { getFirestore } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-    const app=initializeApp(firebaseConfig);
-    window.MAHAU_FIREBASE={app,auth:getAuth(app),db:getFirestore(app)};
-    window.MAHAU_FIREBASE_READY=true;
-    console.log("MAHAU Firebase conectado.");
-  }catch(e){console.error("Firebase:",e);}
+
+try {
+  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc}] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js"),
+    import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js")
+  ]);
+  const app=initializeApp(firebaseConfig);
+  const auth=getAuth(app);
+  const db=getFirestore(app);
+  window.MAHAU_FIREBASE={app,auth,db};
+  window.MAHAU_FIREBASE_READY=true;
+
+  function authMessage(e){
+    const code=e?.code||"";
+    const map={
+      "auth/invalid-credential":"E-mail ou senha incorretos.",
+      "auth/invalid-email":"Digite um e-mail válido.",
+      "auth/user-disabled":"Este usuário está desativado.",
+      "auth/too-many-requests":"Muitas tentativas. Aguarde um pouco e tente novamente.",
+      "auth/network-request-failed":"Falha de conexão. Verifique sua internet."
+    };
+    return map[code]||"Não foi possível entrar. Tente novamente.";
+  }
+  window.firebaseLogin=async function(e){
+    e.preventDefault();
+    const btn=document.getElementById("loginBtn"),err=document.getElementById("authError"),load=document.getElementById("authLoading");
+    err.style.display="none";load.style.display="block";btn.disabled=true;
+    try{await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value.trim(),document.getElementById("loginPassword").value);}
+    catch(ex){err.textContent=authMessage(ex);err.style.display="block";}
+    finally{load.style.display="none";btn.disabled=false;}
+  };
+  window.firebaseLogout=async function(){await signOut(auth);};
+  window.firebaseResetPassword=async function(){
+    const email=document.getElementById("loginEmail").value.trim(),err=document.getElementById("authError");
+    if(!email){err.textContent="Digite seu e-mail primeiro.";err.style.display="block";return;}
+    try{await sendPasswordResetEmail(auth,email);err.textContent="Enviamos o link de redefinição para seu e-mail.";err.style.color="var(--green)";err.style.display="block";}
+    catch(ex){err.textContent=authMessage(ex);err.style.color="var(--red)";err.style.display="block";}
+  };
+
+  window.MAHAU_FIREBASE_API={
+    async syncState(s){
+      if(!window.MAHAU_FIREBASE_AUTH_USER)return;
+      const writes=[];
+      for(const d of s.deals){writes.push(setDoc(doc(db,"deals",String(d.id)),d,{merge:true}));}
+      writes.push(setDoc(doc(db,"settings","main"),{goal:Number(s.goal||0),updatedAt:new Date().toISOString()},{merge:true}));
+      await Promise.all(writes);
+    }
+  };
+
+  async function loadRemote(){
+    try{
+      const snap=await getDocs(collection(db,"deals"));
+      if(!snap.empty){
+        state.deals=snap.docs.map(x=>x.data());
+        state.deals.forEach(d=>{d.activities=d.activities||[];d.nextAction=d.nextAction||"Novo contato";d.priority=d.priority||"B";d.source=d.source||"Prospecção";});
+      }else if(state.deals.length){
+        await window.MAHAU_FIREBASE_API.syncState(state);
+      }
+      const settings=await getDoc(doc(db,"settings","main"));
+      if(settings.exists() && typeof settings.data().goal!=="undefined")state.goal=Number(settings.data().goal||0);
+      localStorage.setItem(KEY,JSON.stringify(state));
+      renderAll();
+      if(document.getElementById("oportunidades")?.classList.contains("active"))renderOpportunities();
+      if(document.getElementById("fechados")?.classList.contains("active"))renderClosed();
+      if(document.getElementById("perdidos")?.classList.contains("active"))renderLost();
+      if(document.getElementById("relatorios")?.classList.contains("active"))renderReport();
+    }catch(e){
+      console.error("Firebase load:",e);
+      toast("Firebase conectado, mas o banco ainda está bloqueado pelas regras.");
+    }
+  }
+
+  onAuthStateChanged(auth,async user=>{
+    const screen=document.getElementById("authScreen");
+    if(user){
+      window.MAHAU_FIREBASE_AUTH_USER=user;
+      document.body.classList.add("auth-ready");
+      screen.style.display="none";
+      document.getElementById("authUser").textContent=user.email||"";
+      await loadRemote();
+    }else{
+      delete window.MAHAU_FIREBASE_AUTH_USER;
+      document.body.classList.remove("auth-ready");
+      screen.style.display="flex";
+      document.getElementById("authUser").textContent="";
+    }
+  });
+}catch(e){
+  console.error("Firebase init:",e);
+  const err=document.getElementById("authError");
+  err.textContent="Não foi possível carregar o Firebase. Verifique a conexão.";
+  err.style.display="block";
 }
 </script>
 </body>
