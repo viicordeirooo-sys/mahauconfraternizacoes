@@ -234,12 +234,12 @@ body:not(.auth-ready) .app{display:none!important}
   <div class="card" style="margin-bottom:14px">
     <div class="eyebrow">OPORTUNIDADES QUENTES</div>
     <div style="display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap">
-      <div><div class="title" style="font-size:26px;margin-top:5px">Em negociação</div><div class="muted">Todos os eventos que chegaram à etapa de negociação.</div></div>
-      <div style="text-align:right"><div class="kpi-value" id="negotiationRevenue">R$ 0</div><div class="muted" style="font-size:10px">valor em negociação</div></div>
+      <div><div class="title" style="font-size:26px;margin-top:5px">Em negociação</div><div class="muted">Todos os eventos que ainda estão em andamento — tudo que não foi fechado ou perdido.</div></div>
+      <div style="text-align:right"><div class="kpi-value" id="negotiationRevenue">R$ 0</div><div class="muted" style="font-size:10px">valor em aberto</div></div>
     </div>
   </div>
   <div class="grid three" style="margin-bottom:14px">
-    <div class="card"><div class="kpi-label">Em negociação</div><div class="kpi-value" id="negotiationCount">0</div><div class="kpi-note">oportunidades</div></div>
+    <div class="card"><div class="kpi-label">Em negociação</div><div class="kpi-value" id="negotiationCount">0</div><div class="kpi-note">oportunidades em aberto</div></div>
     <div class="card"><div class="kpi-label">Ticket médio</div><div class="kpi-value" id="negotiationAvg">R$ 0</div><div class="kpi-note">por oportunidade</div></div>
     <div class="card"><div class="kpi-label">Próximas ações</div><div class="kpi-value" id="negotiationActions">0</div><div class="kpi-note">com data definida</div></div>
   </div>
@@ -605,7 +605,7 @@ function renderNegotiation(){
   document.getElementById("negotiationList").innerHTML=ds.length?ds.map(d=>{
     const wa=whatsappUrl(d.contact);
     const date=d.follow?fmtDay(d.follow):"Sem data";
-    return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div>${d.contact?`<div class="op-meta" style="margin-top:6px">${esc(d.contact)}</div>`:""}</div><span class="badge gold">Negociação</span></div><div class="detail-grid" style="margin-top:12px"><div><div class="eyebrow">PRÓXIMA AÇÃO</div><div style="font-weight:750;margin-top:4px">${esc(d.nextAction||"Definir próxima ação")}</div><div class="op-meta">${esc(date)}</div></div><div><div class="eyebrow">RESPONSÁVEL</div><div style="font-weight:650;margin-top:4px">${esc(d.owner||"Comercial")}</div><div class="op-meta">Evento ${esc(d.date||"sem data")}</div></div></div><div class="op-actions" style="margin-top:12px">${wa?`<button class="btn small whatsapp-btn" onclick="window.open('${wa}','_blank','noopener')">WhatsApp</button>`:""}<button class="btn gold small" onclick="openActivity(${d.id})">Registrar contato</button><button class="btn small" onclick="openDealDetail(${d.id})">Ver negociação</button></div></div>`;
+    return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div>${d.contact?`<div class="op-meta" style="margin-top:6px">${esc(d.contact)}</div>`:""}</div><span class="badge ${d.stage==="Fechado"?"green":d.stage==="Perdido"?"red":"gold"}">${esc(d.stage)}</span></div><div class="detail-grid" style="margin-top:12px"><div><div class="eyebrow">PRÓXIMA AÇÃO</div><div style="font-weight:750;margin-top:4px">${esc(d.nextAction||"Definir próxima ação")}</div><div class="op-meta">${esc(date)}</div></div><div><div class="eyebrow">RESPONSÁVEL</div><div style="font-weight:650;margin-top:4px">${esc(d.owner||"Comercial")}</div><div class="op-meta">Evento ${esc(d.date||"sem data")}</div></div></div><div class="op-actions" style="margin-top:12px">${wa?`<button class="btn small whatsapp-btn" onclick="window.open('${wa}','_blank','noopener')">WhatsApp</button>`:""}<button class="btn gold small" onclick="openActivity(${d.id})">Registrar contato</button><button class="btn small" onclick="openDealDetail(${d.id})">Ver negociação</button></div></div>`;
   }).join(""):'<div class="card"><div class="empty">Nenhum evento em negociação no momento.</div></div>';
 }
 function renderClosed(){
