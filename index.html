@@ -696,12 +696,12 @@ try {
   };
 
   async function loadRemote(){
+    // O login não pode ser desfeito só porque uma leitura do Firestore falhou.
+    // Cada conjunto de dados é carregado separadamente para evitar que uma
+    // coleção secundária derrube toda a sessão.
+    let remoteError=null;
     try{
-      const [dealSnap,taskSnap,settings]=await Promise.all([
-        getDocs(collection(db,"deals")),
-        getDocs(collection(db,"tasks")),
-        getDoc(doc(db,"settings","main"))
-      ]);
+      const dealSnap=await getDocs(collection(db,"deals"));
       if(!dealSnap.empty){
         state.deals=dealSnap.docs.map(x=>x.data());
         state.deals.forEach(d=>{d.activities=d.activities||[];d.nextAction=d.nextAction||"Novo contato";d.priority=d.priority||"B";d.source=d.source||"Prospecção";});
@@ -709,19 +709,32 @@ try {
         for(const d of state.deals)await window.MAHAU_FIREBASE_API.syncDeal(d);
         for(const d of state.deals)for(const a of (d.activities||[]))await window.MAHAU_FIREBASE_API.syncActivity(d.id,a);
       }
-      if(!taskSnap.empty)state.tasks=taskSnap.docs.map(x=>x.data());
-      if(settings.exists() && typeof settings.data().goal!=="undefined")state.goal=Number(settings.data().goal||0);
-      localStorage.setItem(KEY,JSON.stringify(state));
-      renderAll();
-      if(document.getElementById("oportunidades")?.classList.contains("active"))renderOpportunities();
-      if(document.getElementById("fechados")?.classList.contains("active"))renderClosed();
-      if(document.getElementById("perdidos")?.classList.contains("active"))renderLost();
-      if(document.getElementById("relatorios")?.classList.contains("active"))renderReport();
     }catch(e){
-      console.error("Firebase load:",e);
-      toast("Acesso ao banco bloqueado. Confira as regras do Firestore.");
-      return false;
+      console.error("Firebase deals load:",e);
+      remoteError=e;
     }
+    try{
+      const taskSnap=await getDocs(collection(db,"tasks"));
+      if(!taskSnap.empty)state.tasks=taskSnap.docs.map(x=>x.data());
+    }catch(e){
+      console.error("Firebase tasks load:",e);
+      remoteError=remoteError||e;
+    }
+    try{
+      const settings=await getDoc(doc(db,"settings","main"));
+      if(settings.exists() && typeof settings.data().goal!=="undefined")state.goal=Number(settings.data().goal||0);
+    }catch(e){
+      console.error("Firebase settings load:",e);
+      remoteError=remoteError||e;
+    }
+    localStorage.setItem(KEY,JSON.stringify(state));
+    renderAll();
+    if(document.getElementById("oportunidades")?.classList.contains("active"))renderOpportunities();
+    if(document.getElementById("negociacao")?.classList.contains("active"))renderNegotiation();
+    if(document.getElementById("fechados")?.classList.contains("active"))renderClosed();
+    if(document.getElementById("perdidos")?.classList.contains("active"))renderLost();
+    if(document.getElementById("relatorios")?.classList.contains("active"))renderReport();
+    if(remoteError)toast("Login realizado. Houve uma falha ao atualizar alguns dados do banco.");
     return true;
   }
 
@@ -731,8 +744,7 @@ try {
       window.MAHAU_FIREBASE_AUTH_USER=user;
       document.body.classList.add("auth-ready");
       screen.style.display="none";
-      const ok=await loadRemote();
-      if(!ok){await signOut(auth);document.body.classList.remove("auth-ready");screen.style.display="flex";}
+      await loadRemote();
     }else{
       delete window.MAHAU_FIREBASE_AUTH_USER;
       document.body.classList.remove("auth-ready");
