@@ -49,13 +49,13 @@ html,body{min-width:0;overflow-x:hidden}
     backdrop-filter:blur(18px);padding:7px 8px 9px;z-index:100;
   }
   .brand{display:none}
-  .nav{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;height:100%}
+  .nav{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;height:100%}
   .nav button{
     margin:0;padding:5px 2px;min-width:0;height:100%;border-radius:11px;
     display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;
     font-size:17px;color:#777;
   }
-  .nav button span{display:block!important;font-size:9px;line-height:10px;white-space:nowrap}
+  .nav button span{display:block!important;font-size:8px;line-height:10px;white-space:nowrap}
   .nav button.active{box-shadow:none;background:#171717;color:var(--text)}
   .nav button.active:first-letter{color:var(--gold)}
   .main{margin-left:0;width:100%;padding:18px 14px 28px}
@@ -114,9 +114,12 @@ html,body{min-width:0;overflow-x:hidden}
     <button data-page="plano">◷ <span>30 / 60 / 90</span></button>
     <button data-page="pipeline">▦ <span>Pipeline</span></button>
     <button data-page="empresas">◎ <span>Empresas</span></button>
+    <button data-page="followup">◷ <span>Follow-up</span></button>
     <button data-page="fechados">▣ <span>Fechados</span></button>
+    <button data-page="perdidos">× <span>Perdidos</span></button>
     <button data-page="tarefas">✓ <span>Tarefas</span></button>
     <button data-page="metas">↗ <span>Metas</span></button>
+    <button data-page="relatorios">▤ <span>Relatórios</span></button>
   </nav>
 </aside>
 
@@ -175,6 +178,27 @@ html,body{min-width:0;overflow-x:hidden}
   <div class="card"><div id="companiesTable"></div></div>
 </section>
 
+
+<section id="followup" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">ROTINA COMERCIAL</div>
+    <div class="title" style="font-size:26px;margin-top:5px">Follow-up</div>
+    <div class="muted">Quem precisa ser chamado hoje, nesta semana e o que está atrasado.</div>
+  </div>
+  <div class="grid kpis" style="margin-bottom:14px">
+    <div class="card"><div class="kpi-label">Hoje</div><div class="kpi-value" id="fuToday">0</div><div class="kpi-note">contatos para fazer hoje</div></div>
+    <div class="card"><div class="kpi-label">Semana</div><div class="kpi-value" id="fuWeek">0</div><div class="kpi-note">próximos 7 dias</div></div>
+    <div class="card"><div class="kpi-label">Atrasados</div><div class="kpi-value" id="fuLate">0</div><div class="kpi-note">precisam de ação</div></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn active-filter" id="fuBtnToday" onclick="setFollowFilter('today')">Hoje</button>
+    <button class="btn" id="fuBtnWeek" onclick="setFollowFilter('week')">Semana</button>
+    <button class="btn" id="fuBtnLate" onclick="setFollowFilter('late')">Atrasados</button>
+    <button class="btn" id="fuBtnAll" onclick="setFollowFilter('all')">Todos</button>
+  </div>
+  <div class="card"><div id="followTable"></div></div>
+</section>
+
 <section id="fechados" class="page">
   <div class="card" style="margin-bottom:14px">
     <div class="eyebrow">RECEITA CONTRATADA</div>
@@ -190,9 +214,40 @@ html,body{min-width:0;overflow-x:hidden}
   <div class="card"><div id="closedTable"></div></div>
 </section>
 
+
+<section id="perdidos" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">APRENDIZADO COMERCIAL</div>
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px">
+      <div><div class="title" style="font-size:26px;margin-top:5px">Eventos Perdidos</div><div class="muted">Negócios que não converteram.</div></div>
+      <div style="text-align:right"><div class="kpi-value" id="lostRevenue">R$ 0</div><div class="muted" style="font-size:10px">valor perdido</div></div>
+    </div>
+  </div>
+  <div class="grid three" style="margin-bottom:14px">
+    <div class="card"><div class="kpi-label">Perdidos</div><div class="kpi-value" id="lostCount">0</div><div class="kpi-note">oportunidades</div></div>
+    <div class="card"><div class="kpi-label">Ticket perdido</div><div class="kpi-value" id="lostAvg">R$ 0</div><div class="kpi-note">média por oportunidade</div></div>
+    <div class="card"><div class="kpi-label">Principal motivo</div><div class="kpi-value" id="lostReason" style="font-size:18px">—</div><div class="kpi-note">maior recorrência</div></div>
+  </div>
+  <div class="card"><div id="lostTable"></div></div>
+</section>
+
 <section id="tarefas" class="page">
   <div class="toolbar"><select class="select" id="taskFilter" onchange="renderTasks()"><option value="">Todas</option><option value="pendente">Pendentes</option><option value="done">Concluídas</option></select><button class="btn gold" onclick="openTaskModal()">+ Tarefa</button></div>
   <div class="card"><div id="tasksTable"></div></div>
+</section>
+
+
+<section id="relatorios" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">GESTÃO EXECUTIVA</div>
+    <div class="title" style="font-size:26px;margin-top:5px">Relatório Executivo</div>
+    <div class="muted">Visão geral de pipeline, fechados, negociação, perdidos e atividade comercial.</div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn gold" onclick="generatePDF()">Gerar PDF executivo</button>
+      <button class="btn" onclick="window.print()">Imprimir / Salvar PDF</button>
+    </div>
+  </div>
+  <div id="reportPreview"></div>
 </section>
 
 <section id="metas" class="page">
@@ -264,9 +319,9 @@ function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style
 function setPage(page){
  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");
  document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
- const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",fechados:"Eventos Fechados",tarefas:"Tarefas",metas:"Metas"};
+ const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",followup:"Follow-up",fechados:"Eventos Fechados",perdidos:"Eventos Perdidos",tarefas:"Tarefas",metas:"Metas",relatorios:"Relatório Executivo"};
  document.getElementById("pageTitle").textContent=names[page];
- if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies(); if(page==="fechados")renderClosed(); if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="plano")renderPhases();
+ if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies(); if(page==="followup")renderFollowup(); if(page==="fechados")renderClosed(); if(page==="perdidos")renderLost(); if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="relatorios")renderReport();if(page==="plano")renderPhases();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 function renderAll(){renderKPIs();renderMiniPipeline();renderActions();renderRecent();renderPhases();}
@@ -289,12 +344,92 @@ function renderPipeline(){
  let owners=[...new Set(state.deals.map(d=>d.owner).filter(Boolean))];if(document.getElementById("filterOwner"))document.getElementById("filterOwner").innerHTML='<option value="">Todos os responsáveis</option>'+owners.map(o=>`<option ${o===own?"selected":""}>${esc(o)}</option>`).join("");
  document.getElementById("fullPipeline").innerHTML=stages.map(s=>{let ds=state.deals.filter(d=>d.stage===s&&(!q||d.company.toLowerCase().includes(q))&&(!own||d.owner===own));return `<div class="stage"><div class="stage-head"><span>${s}</span><span class="stage-count">${ds.length}</span></div>${ds.map(d=>`<div class="deal" style="cursor:pointer" onclick="editStage(${d.id})"><strong>${esc(d.company)}</strong><small>${money(d.value)}</small><small>${esc(d.follow||"Sem follow-up")}</small></div>`).join("")||'<div class="empty" style="padding:20px 0">Vazio</div>'}</div>`}).join("");
 }
-function editStage(id){let d=state.deals.find(x=>x.id===id), s=prompt("Nova etapa: Lead, Qualificado, Reunião, Proposta, Negociação, Fechado, Perdido",d.stage);if(s&&[...stages,"Perdido"].includes(s)){d.stage=s;save();renderAll();renderPipeline();toast("Etapa atualizada")}}
+function editStage(id){
+ let d=state.deals.find(x=>x.id===id), s=prompt("Nova etapa: Lead, Qualificado, Reunião, Proposta, Negociação, Fechado, Perdido",d.stage);
+ if(!s||![...stages,"Perdido"].includes(s))return;
+ d.stage=s;
+ if(s==="Fechado"){d.closedAt=d.closedAt||localISO();d.lostReason="";}
+ if(s==="Perdido"){d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";}
+ save();renderAll();renderPipeline();renderClosed();renderLost();renderFollowup();renderReport();toast("Etapa atualizada")
+}
 function renderCompanies(){let q=(document.getElementById("companySearch")?.value||"").toLowerCase();let cs=state.companies.filter(c=>c.name.toLowerCase().includes(q)||String(c.segment).toLowerCase().includes(q));document.getElementById("companiesTable").innerHTML=cs.length?`<table><thead><tr><th>Empresa</th><th>Segmento</th><th>Decisor</th><th>Canal</th><th>Prioridade</th></tr></thead><tbody>${cs.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.segment)}</td><td>${esc(c.contact)}<br><span class="muted">${esc(c.role)}</span></td><td>${esc(c.channel)}</td><td><span class="badge ${c.priority==="A"?"gold":""}">${esc(c.priority)}</span></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma empresa cadastrada.</div>'}
 function renderTasks(){let f=document.getElementById("taskFilter")?.value||"",ts=state.tasks.filter(t=>!f||(f==="done"?t.done:!t.done));document.getElementById("tasksTable").innerHTML=ts.length?`<table><thead><tr><th></th><th>Tarefa</th><th>Responsável</th><th>Prazo</th></tr></thead><tbody>${ts.map(t=>`<tr><td><input type="checkbox" ${t.done?"checked":""} onchange="toggleTask(${t.id})" style="accent-color:var(--gold)"></td><td style="${t.done?"text-decoration:line-through;color:#777":""}">${esc(t.text)}</td><td>${esc(t.owner||"—")}</td><td>${esc(t.date||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma tarefa.</div>'}
 function toggleTask(id){let t=state.tasks.find(x=>x.id===id);t.done=!t.done;save();renderTasks();renderPhases();toast(t.done?"Tarefa concluída":"Tarefa reaberta")}
 function renderPhases(){let html=state.phases.map(p=>{let done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;return `<div class="phase"><div class="phase-head"><div><div class="date">${p.date}</div><h3>${p.name}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{let t=state.tasks.find(t=>t.phase===p.id&&t.index===i);let checked=t?.done||false;return `<div class="task ${checked?"done":""}"><input type="checkbox" ${checked?"checked":""} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`}).join("")}</div>`}).join("");document.getElementById("phases").innerHTML=html}
 function togglePhaseTask(pid,index){let t=state.tasks.find(x=>x.phase===pid&&x.index===index);if(!t){t={id:Date.now(),text:state.phases.find(p=>p.id===pid).tasks[index],owner:"Comercial",date:"",done:false,phase:pid,index};state.tasks.push(t)}t.done=!t.done;save();renderPhases();renderTasks();toast(t.done?"Etapa concluída":"Etapa reaberta")}
+
+let followFilter="today";
+function localISO(d=new Date()){const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
+function daysFromToday(iso){if(!iso)return 99999;const a=new Date(localISO()+"T00:00:00"),b=new Date(iso+"T00:00:00");return Math.round((b-a)/86400000)}
+function setFollowFilter(f){followFilter=f;document.querySelectorAll(".active-filter").forEach(x=>x.classList.remove("active-filter"));const b=document.getElementById("fuBtn"+({today:"Today",week:"Week",late:"Late",all:"All"}[f]));if(b)b.classList.add("active-filter");renderFollowup()}
+function followRows(ds){
+ return ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Etapa</th><th>Valor</th><th>Data</th><th>Responsável</th><th>Ação</th></tr></thead><tbody>${ds.map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td><span class="badge ${d.stage==="Negociação"?"gold":""}">${esc(d.stage)}</span></td><td>${money(d.value)}</td><td><b>${esc(d.follow||"—")}</b></td><td>${esc(d.owner||"—")}</td><td><button class="btn" onclick="rescheduleFollow(${d.id})">Reagendar</button></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum follow-up neste período.</div>';
+}
+function renderFollowup(){
+ const active=activeDeals().filter(d=>d.follow);
+ const today=active.filter(d=>daysFromToday(d.follow)===0);
+ const week=active.filter(d=>{let n=daysFromToday(d.follow);return n>=0&&n<=6});
+ const late=active.filter(d=>daysFromToday(d.follow)<0);
+ document.getElementById("fuToday").textContent=today.length;document.getElementById("fuWeek").textContent=week.length;document.getElementById("fuLate").textContent=late.length;
+ let ds=followFilter==="today"?today:followFilter==="week"?week:followFilter==="late"?late:active;
+ ds.sort((a,b)=>(a.follow||"").localeCompare(b.follow||""));
+ document.getElementById("followTable").innerHTML=followRows(ds);
+}
+function rescheduleFollow(id){
+ const d=state.deals.find(x=>x.id===id);const next=prompt("Nova data do follow-up (AAAA-MM-DD):",d.follow||localISO());if(next&&/^\d{4}-\d{2}-\d{2}$/.test(next)){d.follow=next;d.lastContact=localISO();save();renderAll();renderFollowup();toast("Follow-up reagendado")}}
+function renderLost(){
+ const ds=state.deals.filter(d=>d.stage==="Perdido"), revenue=ds.reduce((a,d)=>a+d.value,0),avg=ds.length?revenue/ds.length:0;
+ const reasons={};ds.forEach(d=>{let r=d.lostReason||"Não informado";reasons[r]=(reasons[r]||0)+1});let top=Object.entries(reasons).sort((a,b)=>b[1]-a[1])[0];
+ document.getElementById("lostRevenue").textContent=money(revenue);document.getElementById("lostCount").textContent=ds.length;document.getElementById("lostAvg").textContent=money(avg);document.getElementById("lostReason").textContent=top?esc(top[0]):"—";
+ document.getElementById("lostTable").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Valor</th><th>Data do evento</th><th>Motivo</th><th>Responsável</th></tr></thead><tbody>${ds.sort((a,b)=>(b.lostAt||"").localeCompare(a.lostAt||"")).map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td>${money(d.value)}</td><td>${esc(d.date||"—")}</td><td>${esc(d.lostReason||"Não informado")}</td><td>${esc(d.owner||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento perdido.</div>';
+}
+function reportMetrics(){
+ const deals=state.deals, active=activeDeals(), won=deals.filter(d=>d.stage==="Fechado"),lost=deals.filter(d=>d.stage==="Perdido"),neg=deals.filter(d=>d.stage==="Negociação"),proposal=deals.filter(d=>d.stage==="Proposta");
+ const sum=a=>a.reduce((x,d)=>x+d.value,0);return {deals,active,won,lost,neg,proposal,pipeline:sum(active),wonValue:sum(won),lostValue:sum(lost),negValue:sum(neg),proposalValue:sum(proposal),goal:state.goal,conversion:deals.length?won.length/deals.length*100:0};
+}
+function renderReport(){
+ const m=reportMetrics(), pct=m.goal?Math.min(100,m.wonValue/m.goal*100):0;
+ const topStages=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado","Perdido"].map(s=>`<div class="card"><div class="kpi-label">${s}</div><div class="kpi-value" style="font-size:21px">${state.deals.filter(d=>d.stage===s).length}</div><div class="kpi-note">${money(state.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0))}</div></div>`).join("");
+ document.getElementById("reportPreview").innerHTML=`
+ <div class="grid kpis">
+  <div class="card"><div class="kpi-label">Pipeline ativo</div><div class="kpi-value">${money(m.pipeline)}</div></div>
+  <div class="card"><div class="kpi-label">Fechado</div><div class="kpi-value">${money(m.wonValue)}</div></div>
+  <div class="card"><div class="kpi-label">Em negociação</div><div class="kpi-value">${money(m.negValue)}</div></div>
+  <div class="card"><div class="kpi-label">Perdido</div><div class="kpi-value">${money(m.lostValue)}</div></div>
+  <div class="card"><div class="kpi-label">Conversão</div><div class="kpi-value">${Math.round(m.conversion)}%</div></div>
+ </div>
+ <div class="section-title"><h2>Funil completo</h2></div><div class="grid three">${topStages}</div>
+ <div class="section-title"><h2>Meta do mês-alvo</h2></div>
+ <div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:9px"><span>${money(m.wonValue)} contratado</span><b>${Math.round(pct)}%</b></div><div class="progress"><i style="width:${pct}%"></i></div><div class="muted" style="font-size:11px;margin-top:8px">Meta: ${money(m.goal)}</div></div>
+ <div class="section-title"><h2>Eventos fechados</h2></div>
+ <div class="card">${m.won.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Data</th><th>Valor</th></tr></thead><tbody>${m.won.map(d=>`<tr><td>${esc(d.company)}</td><td>${esc(d.type)}</td><td>${esc(d.date||"—")}</td><td>${money(d.value)}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento fechado.</div>'}</div>
+ <div class="section-title"><h2>Eventos perdidos</h2></div>
+ <div class="card">${m.lost.length?`<table><thead><tr><th>Empresa</th><th>Valor</th><th>Motivo</th></tr></thead><tbody>${m.lost.map(d=>`<tr><td>${esc(d.company)}</td><td>${money(d.value)}</td><td>${esc(d.lostReason||"Não informado")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento perdido.</div>'}</div>`;
+}
+async function generatePDF(){
+ const m=reportMetrics(), today=new Date().toLocaleDateString("pt-BR");
+ if(!window.jspdf){toast("Carregando gerador de PDF...");return}
+ const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"});
+ const gold=[200,164,93], black=[5,5,5], white=[245,243,237], gray=[160,158,150];
+ doc.setFillColor(...black);doc.rect(0,0,210,297,"F");
+ doc.setTextColor(...gold);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.text("MAHAU • CORPORATE SALES",16,18);
+ doc.setTextColor(...white);doc.setFontSize(23);doc.text("RELATÓRIO EXECUTIVO",16,32);
+ doc.setTextColor(...gray);doc.setFontSize(9);doc.text(`Gerado em ${today} • Eventos Corporativos`,16,40);
+ const cards=[["PIPELINE",m.pipeline],["FECHADO",m.wonValue],["NEGOCIAÇÃO",m.negValue],["PERDIDO",m.lostValue]];
+ let x=16;cards.forEach((c,i)=>{doc.setFillColor(18,18,18);doc.roundedRect(x,50,42,27,4,4,"F");doc.setTextColor(...gray);doc.setFontSize(7);doc.text(c[0],x+5,57);doc.setTextColor(...white);doc.setFontSize(11);doc.setFont("helvetica","bold");doc.text(money(c[1]),x+5,68);x+=46});
+ doc.setTextColor(...gold);doc.setFontSize(12);doc.text("VISÃO DO FUNIL",16,90);
+ const rows=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado","Perdido"].map(s=>[s,String(state.deals.filter(d=>d.stage===s).length),money(state.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0))]);
+ if(doc.autoTable) doc.autoTable({startY:96,head:[["Etapa","Eventos","Valor"]],body:rows,theme:"grid",styles:{fontSize:8,textColor:white,fillColor:[15,15,15],lineColor:[50,50,50]},headStyles:{fillColor:gold,textColor:black},margin:{left:16,right:16}});
+ let y=doc.lastAutoTable?doc.lastAutoTable.finalY+14:150;
+ doc.setTextColor(...gold);doc.setFontSize(12);doc.text("EVENTOS FECHADOS",16,y);y+=6;
+ const wonRows=m.won.map(d=>[d.company,d.type,d.date||"—",money(d.value)]);
+ if(doc.autoTable) doc.autoTable({startY:y,head:[["Empresa","Evento","Data","Valor"]],body:wonRows.length?wonRows:[["—","Nenhum evento fechado","—","R$ 0"]],theme:"grid",styles:{fontSize:7,textColor:white,fillColor:[15,15,15],lineColor:[50,50,50]},headStyles:{fillColor:gold,textColor:black},margin:{left:16,right:16}});
+ y=doc.lastAutoTable?doc.lastAutoTable.finalY+12:y+30;
+ doc.setTextColor(...gold);doc.setFontSize(12);doc.text("EVENTOS PERDIDOS",16,y);y+=6;
+ const lostRows=m.lost.map(d=>[d.company,money(d.value),d.lostReason||"Não informado"]);
+ if(doc.autoTable) doc.autoTable({startY:y,head:[["Empresa","Valor","Motivo"]],body:lostRows.length?lostRows:[["—","R$ 0","Nenhum evento perdido"]],theme:"grid",styles:{fontSize:7,textColor:white,fillColor:[15,15,15],lineColor:[50,50,50]},headStyles:{fillColor:gold,textColor:black},margin:{left:16,right:16}});
+ doc.save("MAHAU_Relatorio_Executivo_Corporativo.pdf");toast("PDF gerado");
+}
 function renderClosed(){
   let q=(document.getElementById("closedSearch")?.value||"").toLowerCase();
   let month=(document.getElementById("closedMonth")?.value||"");
@@ -323,6 +458,8 @@ function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:"ap
 renderAll();
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script type="module">
 /*
   FIREBASE — PRÓXIMA ETAPA
