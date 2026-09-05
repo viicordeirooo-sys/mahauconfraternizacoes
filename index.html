@@ -162,6 +162,7 @@ body:not(.auth-ready) .app{display:none!important}
     <button class="active" data-page="dashboard">◈ <span>Dashboard</span></button>
     <button data-page="plano">◷ <span>Plano 30 / 60 / 90</span></button>
     <button data-page="oportunidades">◉ <span>Follow Up</span></button>
+    <button data-page="negociacao">◆ <span>Em negociação</span></button>
     <button data-page="fechados">▣ <span>Fechados</span></button>
     <button data-page="perdidos">× <span>Perdidos</span></button>
     <button data-page="relatorios">▤ <span>Relatórios</span></button>
@@ -227,6 +228,26 @@ body:not(.auth-ready) .app{display:none!important}
 </section>
 
 
+
+
+<section id="negociacao" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">OPORTUNIDADES QUENTES</div>
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap">
+      <div><div class="title" style="font-size:26px;margin-top:5px">Em negociação</div><div class="muted">Todos os eventos que chegaram à etapa de negociação.</div></div>
+      <div style="text-align:right"><div class="kpi-value" id="negotiationRevenue">R$ 0</div><div class="muted" style="font-size:10px">valor em negociação</div></div>
+    </div>
+  </div>
+  <div class="grid three" style="margin-bottom:14px">
+    <div class="card"><div class="kpi-label">Em negociação</div><div class="kpi-value" id="negotiationCount">0</div><div class="kpi-note">oportunidades</div></div>
+    <div class="card"><div class="kpi-label">Ticket médio</div><div class="kpi-value" id="negotiationAvg">R$ 0</div><div class="kpi-note">por oportunidade</div></div>
+    <div class="card"><div class="kpi-label">Próximas ações</div><div class="kpi-value" id="negotiationActions">0</div><div class="kpi-note">com data definida</div></div>
+  </div>
+  <div class="toolbar">
+    <input class="input" id="negotiationSearch" placeholder="Buscar empresa, contato ou evento..." oninput="renderNegotiation()">
+  </div>
+  <div id="negotiationList"></div>
+</section>
 
 
 <section id="fechados" class="page">
@@ -369,7 +390,7 @@ save();
 function renderKPIs(){const active=activeDeals(),openValue=active.reduce((a,d)=>a+d.value,0),won=state.deals.filter(d=>d.stage==="Fechado").reduce((a,d)=>a+d.value,0),today=active.filter(d=>d.follow&&daysFromToday(d.follow)===0).length;document.getElementById("kOpenValue").textContent=money(openValue);document.getElementById("kWon").textContent=money(won);document.getElementById("kOpp").textContent=active.length;document.getElementById("kFollow").textContent=today;document.getElementById("kGoal").textContent=money(state.goal)}
 function renderActions(){const ds=activeDeals().filter(d=>d.follow&&daysFromToday(d.follow)<=0).sort((a,b)=>(a.follow||"").localeCompare(b.follow||"")).slice(0,6);document.getElementById("nextActions").innerHTML=ds.length?ds.map(d=>{const late=daysFromToday(d.follow)<0;return `<div class="task" style="cursor:pointer" onclick="openActivity(${d.id})"><span style="color:${late?'var(--red)':'var(--gold)'}">●</span><div><b style="font-size:12px">${esc(d.company)}</b><div class="muted" style="font-size:11px">${esc(d.nextAction||"Próxima ação")} • ${late?'Atrasado':'Hoje'} • ${esc(d.stage)}</div></div></div>`}).join(""): '<div class="empty">Nenhuma ação para hoje. Ótimo.</div>'}
 function renderRecent(){const ds=[...state.deals].reverse().slice(0,8);document.getElementById("recentDeals").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Etapa</th><th>Valor</th><th>Próxima ação</th></tr></thead><tbody>${ds.map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td><span class="badge ${d.stage==="Fechado"?"green":d.stage==="Negociação"?"gold":d.stage==="Perdido"?"red":""}">${esc(d.stage)}</span></td><td>${money(d.value)}</td><td>${esc(d.nextAction||"—")} ${d.follow?`• ${esc(d.follow)}`:""}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma oportunidade criada.</div>'}
-function setPage(page){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",oportunidades:"Follow Up",fechados:"Eventos Fechados",perdidos:"Eventos Perdidos",relatorios:"Relatório Executivo"};document.getElementById("pageTitle").textContent=names[page]||"Dashboard";if(page==="dashboard")renderAll();if(page==="oportunidades")renderOpportunities();if(page==="fechados")renderClosed();if(page==="perdidos")renderLost();if(page==="relatorios")renderReport();if(page==="plano")renderPhases()}
+function setPage(page){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",oportunidades:"Follow Up",negociacao:"Em negociação",fechados:"Eventos Fechados",perdidos:"Eventos Perdidos",relatorios:"Relatório Executivo"};document.getElementById("pageTitle").textContent=names[page]||"Dashboard";if(page==="dashboard")renderAll();if(page==="oportunidades")renderOpportunities();if(page==="negociacao")renderNegotiation();if(page==="fechados")renderClosed();if(page==="perdidos")renderLost();if(page==="relatorios")renderReport();if(page==="plano")renderPhases()}
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 async function openDealDetail(id){
  const d=state.deals.find(x=>x.id===id); if(!d)return; window.currentDetailId=id;
@@ -445,12 +466,12 @@ function saveActivity(e){
  if(outcome==="advance"){d.stage=document.getElementById("aNextStage").value;d.follow=nextDate;d.nextAction=a.nextAction}
  if(outcome==="closed"){d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction=""}
  if(outcome==="lost"){d.stage="Perdido";d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";d.follow="";d.nextAction=""}
- save();persistDeal(id);persistActivity(id,a);renderAll();renderOpportunities();renderClosed();renderLost();renderReport();closeActivity();toast(outcome==="advance"?"Etapa avançada e próximo passo agendado":"Interação registrada")
+ save();persistDeal(id);persistActivity(id,a);renderAll();renderOpportunities();renderNegotiation();renderClosed();renderLost();renderReport();closeActivity();toast(outcome==="advance"?"Etapa avançada e próximo passo agendado":"Interação registrada")
 }
 
-function finishDeal(id){const d=state.deals.find(x=>x.id===id);if(!confirm("Confirmar evento como FECHADO?"))return;d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";save();persistDeal(id);renderAll();renderOpportunities();renderClosed();renderReport();openDealDetail(id);toast("Evento fechado")}
-function loseDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo da perda:",d.lostReason||"");if(r===null)return;d.stage="Perdido";d.lostAt=localISO();d.lostReason=r||"Não informado";d.follow="";d.nextAction="";save();persistDeal(id);renderAll();renderOpportunities();renderLost();renderReport();openDealDetail(id);toast("Oportunidade perdida")}
-function reopenDeal(id){const d=state.deals.find(x=>x.id===id);d.stage="Lead";d.follow=localISO();d.nextAction="Retomar contato";save();persistDeal(id);renderAll();renderOpportunities();renderLost();openDealDetail(id);toast("Oportunidade reaberta")}
+function finishDeal(id){const d=state.deals.find(x=>x.id===id);if(!confirm("Confirmar evento como FECHADO?"))return;d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";save();persistDeal(id);renderAll();renderOpportunities();renderNegotiation();renderClosed();renderReport();openDealDetail(id);toast("Evento fechado")}
+function loseDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo da perda:",d.lostReason||"");if(r===null)return;d.stage="Perdido";d.lostAt=localISO();d.lostReason=r||"Não informado";d.follow="";d.nextAction="";save();persistDeal(id);renderAll();renderOpportunities();renderNegotiation();renderLost();renderReport();openDealDetail(id);toast("Oportunidade perdida")}
+function reopenDeal(id){const d=state.deals.find(x=>x.id===id);d.stage="Lead";d.follow=localISO();d.nextAction="Retomar contato";save();persistDeal(id);renderAll();renderOpportunities();renderNegotiation();renderLost();openDealDetail(id);toast("Oportunidade reaberta")}
 let followPeriod="day";
 function setFollowPeriod(period){followPeriod=period;document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===period));renderOpportunities()}
 function startOfWeek(d=new Date()){const x=new Date(d);const day=x.getDay();const diff=day===0?-6:1-day;x.setDate(x.getDate()+diff);x.setHours(0,0,0,0);return x}
@@ -546,6 +567,23 @@ async function generatePDF(){
  if(doc.autoTable) doc.autoTable({startY:y,head:[["Empresa","Valor","Motivo"]],body:lostRows.length?lostRows:[["—","R$ 0","Nenhum evento perdido"]],theme:"grid",styles:{fontSize:7,textColor:white,fillColor:[15,15,15],lineColor:[50,50,50]},headStyles:{fillColor:gold,textColor:black},margin:{left:16,right:16}});
  doc.save("MAHAU_Relatorio_Executivo_Corporativo.pdf");toast("PDF gerado");
 }
+function renderNegotiation(){
+  const q=(document.getElementById("negotiationSearch")?.value||"").toLowerCase().trim();
+  let ds=state.deals.filter(d=>d.stage==="Negociação").filter(d=>{
+    if(!q)return true;
+    return [d.company,d.contact,d.type,d.owner,d.nextAction,d.notes].some(v=>String(v||"").toLowerCase().includes(q));
+  }).sort((a,b)=>(a.follow||"9999-99-99").localeCompare(b.follow||"9999-99-99"));
+  const total=ds.reduce((a,d)=>a+d.value,0);
+  document.getElementById("negotiationRevenue").textContent=money(total);
+  document.getElementById("negotiationCount").textContent=ds.length;
+  document.getElementById("negotiationAvg").textContent=money(ds.length?total/ds.length:0);
+  document.getElementById("negotiationActions").textContent=ds.filter(d=>d.follow).length;
+  document.getElementById("negotiationList").innerHTML=ds.length?ds.map(d=>{
+    const wa=whatsappUrl(d.contact);
+    const date=d.follow?fmtDay(d.follow):"Sem data";
+    return `<div class="opportunity-card"><div class="op-head"><div><div class="op-title">${esc(d.company)}</div><div class="op-meta">${esc(d.type)} • ${money(d.value)} • ${d.guests||0} convidados</div>${d.contact?`<div class="op-meta" style="margin-top:6px">${esc(d.contact)}</div>`:""}</div><span class="badge gold">Negociação</span></div><div class="detail-grid" style="margin-top:12px"><div><div class="eyebrow">PRÓXIMA AÇÃO</div><div style="font-weight:750;margin-top:4px">${esc(d.nextAction||"Definir próxima ação")}</div><div class="op-meta">${esc(date)}</div></div><div><div class="eyebrow">RESPONSÁVEL</div><div style="font-weight:650;margin-top:4px">${esc(d.owner||"Comercial")}</div><div class="op-meta">Evento ${esc(d.date||"sem data")}</div></div></div><div class="op-actions" style="margin-top:12px">${wa?`<button class="btn small whatsapp-btn" onclick="window.open('${wa}','_blank','noopener')">WhatsApp</button>`:""}<button class="btn gold small" onclick="openActivity(${d.id})">Registrar contato</button><button class="btn small" onclick="openDealDetail(${d.id})">Ver negociação</button></div></div>`;
+  }).join(""):'<div class="card"><div class="empty">Nenhum evento em negociação no momento.</div></div>';
+}
 function renderClosed(){
   let q=(document.getElementById("closedSearch")?.value||"").toLowerCase();
   let month=(document.getElementById("closedMonth")?.value||"");
@@ -583,13 +621,13 @@ const firebaseConfig = {
 };
 
 try {
-  const [{initializeApp},{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField}] = await Promise.all([
+  const [{initializeApp},{initializeAuth,browserLocalPersistence,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail},{getFirestore,collection,getDocs,doc,setDoc,getDoc,deleteField}] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js"),
     import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js")
   ]);
   const app=initializeApp(firebaseConfig);
-  const auth=getAuth(app);
+  const auth=initializeAuth(app,{persistence:browserLocalPersistence});
   const db=getFirestore(app);
   window.MAHAU_FIREBASE={app,auth,db};
   window.MAHAU_FIREBASE_READY=true;
@@ -609,8 +647,11 @@ try {
     e.preventDefault();
     const btn=document.getElementById("loginBtn"),err=document.getElementById("authError"),load=document.getElementById("authLoading");
     err.style.display="none";load.style.display="block";btn.disabled=true;
-    try{await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value.trim(),document.getElementById("loginPassword").value);}
-    catch(ex){err.textContent=authMessage(ex);err.style.display="block";}
+    try{
+      const login=signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value.trim(),document.getElementById("loginPassword").value);
+      const timeout=new Promise((_,reject)=>setTimeout(()=>reject(Object.assign(new Error("timeout"),{code:"auth/network-request-failed"})),15000));
+      await Promise.race([login,timeout]);
+    }catch(ex){err.textContent=authMessage(ex);err.style.display="block";}
     finally{load.style.display="none";btn.disabled=false;}
   };
   window.firebaseLogout=async function(){await signOut(auth);};
@@ -687,7 +728,19 @@ try {
     return true;
   }
 
+  let authSettled=false;
+  const authStartupTimer=setTimeout(()=>{
+    if(!authSettled){
+      const load=document.getElementById("authLoading");
+      const err=document.getElementById("authError");
+      load.style.display="none";
+      err.textContent="Não foi possível conectar ao Firebase agora. Atualize a página e tente novamente.";
+      err.style.display="block";
+    }
+  },12000);
   onAuthStateChanged(auth,async user=>{
+    authSettled=true;
+    clearTimeout(authStartupTimer);
     const screen=document.getElementById("authScreen");
     if(user){
       window.MAHAU_FIREBASE_AUTH_USER=user;
