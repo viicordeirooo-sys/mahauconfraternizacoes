@@ -284,7 +284,7 @@ html,body{min-width:0;overflow-x:hidden}
 <div><label>Resultado</label><select class="select" id="aResult"><option>Contato realizado</option><option>Sem resposta</option><option>Interessado</option><option>Aguardando retorno</option><option>Pediu proposta</option><option>Pediu reunião</option><option>Pediu visita</option><option>Em negociação</option><option>Outro</option></select></div>
 <div class="full"><label>O que aconteceu?</label><textarea class="textarea" id="aNotes" required placeholder="Ex.: Cliente gostou do espaço e pediu proposta para 180 pessoas."></textarea></div>
 <div><label>Próximo passo</label><select class="select" id="aNextAction"><option>Ligação</option><option>WhatsApp</option><option>E-mail</option><option>Reunião</option><option>Visita ao MAHAU</option><option>Enviar apresentação</option><option>Enviar proposta</option><option>Retornar proposta</option><option>Negociação</option><option>Outro</option></select></div>
-<div><label>Data do próximo passo</label><input class="input" id="aNextDate" type="date"></div>
+<div><label>Data do próximo passo</label><input class="input" id="aNextDate" type="date" required></div>
 <div><label>Resultado do ciclo</label><select class="select" id="aOutcome" onchange="toggleNextStage()"><option value="continue">Continuar + próxima ação</option><option value="advance">Avançar etapa</option><option value="closed">Fechar evento</option><option value="lost">Perder oportunidade</option></select></div>
 <div id="nextStageWrap" style="display:none"><label>Nova etapa</label><select class="select" id="aNextStage"><option>Qualificado</option><option>Reunião</option><option>Proposta</option><option>Negociação</option></select></div>
 <div class="full" style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" onclick="closeActivity()">Cancelar</button><button class="btn gold">Salvar interação</button></div>
@@ -350,13 +350,19 @@ function openDealDetail(id){
  updateModalLock();
 }
 function closeDetail(){document.getElementById("detailModal").classList.remove("show");updateModalLock()}
-function openActivity(id){
+function openActivity(id,mode="continue"){
  const detail=document.getElementById("detailModal");
  const activity=document.getElementById("activityModal");
  document.getElementById("aDealId").value=id;
  document.getElementById("aNotes").value="";
  document.getElementById("aNextDate").value=localISO();
- document.getElementById("aOutcome").value="continue";
+ document.getElementById("aOutcome").value=mode;
+ const d=state.deals.find(x=>x.id===id);
+ if(mode==="advance" && d){
+   const i=stages.indexOf(d.stage);
+   const next=stages[i+1];
+   if(next && next!=="Fechado") document.getElementById("aNextStage").value=next;
+ }
  toggleNextStage();
  // Never stack two independently scrollable modals on mobile.
  detail.classList.remove("show");
@@ -370,7 +376,12 @@ function closeActivity(){
 }
 function toggleNextStage(){document.getElementById("nextStageWrap").style.display=document.getElementById("aOutcome").value==="advance"?"block":"none"}
 function saveActivity(e){e.preventDefault();const id=Number(document.getElementById("aDealId").value),d=state.deals.find(x=>x.id===id);if(!d)return;d.activities=d.activities||[];const nextDate=document.getElementById("aNextDate").value;const outcome=document.getElementById("aOutcome").value;const a={id:Date.now(),date:localISO(),dateTime:new Date().toLocaleString("pt-BR"),type:document.getElementById("aType").value,result:document.getElementById("aResult").value,notes:document.getElementById("aNotes").value,nextAction:document.getElementById("aNextAction").value,nextDate:nextDate};d.activities.push(a);d.lastContact=localISO();if(outcome==="continue"){d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="advance"){d.stage=document.getElementById("aNextStage").value;d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="closed"){d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";}if(outcome==="lost"){d.stage="Perdido";d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";d.follow="";d.nextAction="";}save();renderAll();renderOpportunities();renderClosed();renderLost();renderReport();closeActivity();toast("Interação registrada")}
-function quickAdvance(id){const d=state.deals.find(x=>x.id===id);const i=stages.indexOf(d.stage);if(i<0||i>=stages.length-2){toast("Use a ação de fechamento ou negociação");return}d.stage=stages[i+1];d.follow=localISO();d.nextAction="Novo contato";save();renderAll();renderOpportunities();openDealDetail(id);toast("Etapa avançada")}
+function quickAdvance(id){
+ const d=state.deals.find(x=>x.id===id);
+ const i=stages.indexOf(d?.stage);
+ if(i<0 || i>=stages.length-2){toast("Use a ação de fechamento ou negociação");return}
+ openActivity(id,"advance");
+}
 function finishDeal(id){const d=state.deals.find(x=>x.id===id);if(!confirm("Confirmar evento como FECHADO?"))return;d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderClosed();renderReport();openDealDetail(id);toast("Evento fechado")}
 function loseDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo da perda:",d.lostReason||"");if(r===null)return;d.stage="Perdido";d.lostAt=localISO();d.lostReason=r||"Não informado";d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderLost();renderReport();openDealDetail(id);toast("Oportunidade perdida")}
 function reopenDeal(id){const d=state.deals.find(x=>x.id===id);d.stage="Lead";d.follow=localISO();d.nextAction="Retomar contato";save();renderAll();renderOpportunities();renderLost();openDealDetail(id);toast("Oportunidade reaberta")}
