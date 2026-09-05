@@ -98,8 +98,21 @@ html,body{min-width:0;overflow-x:hidden}
   .toolbar{display:grid;grid-template-columns:1fr auto;gap:8px}
   .toolbar .input{min-width:0;width:100%}
   .input,.select,.textarea{font-size:12px}
-  .modal{padding:12px;align-items:flex-end}
-  .modal-box{max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+  /* Modal: one scroll only on mobile; the page and bottom navigation stay out of the way. */
+  body.modal-open{overflow:hidden;width:100%;}
+  body.modal-open .sidebar{display:none!important}
+  /* Mobile scrolling: one vertical scroll per active modal; horizontal scroll only where intentional. */
+  .page{min-width:0;overflow-x:hidden;touch-action:pan-y;overscroll-behavior-x:none}
+  .main{overflow-x:hidden;overscroll-behavior-x:none}
+  .nav-scroll{touch-action:pan-x;overscroll-behavior-x:contain}
+  .stepper{touch-action:pan-x;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none}
+  .stepper::-webkit-scrollbar{display:none}
+  .op-actions{min-width:0}
+  .op-actions .btn{touch-action:manipulation}
+  .modal{padding:10px;align-items:flex-end;overflow:hidden;overscroll-behavior:none;touch-action:none}
+  .modal-box{width:100%;max-width:100%;max-height:calc(100svh - 20px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;border-radius:18px 18px 0 0;padding:18px 18px 28px;min-width:0}
+  .modal-box::-webkit-scrollbar{width:5px}
+  .modal-box::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:10px}
   .form{grid-template-columns:1fr;gap:10px}
   .form .full{grid-column:auto}
 }
@@ -331,12 +344,29 @@ function openDealDetail(id){
  const history=acts.length?acts.map(x=>'<div class="timeline-item"><div class="timeline-date">'+esc(x.dateTime||x.date||'')+' • '+esc(x.type||'')+'</div><div class="timeline-title">'+esc(x.result||'Interação')+'</div><div class="timeline-note">'+esc(x.notes||'')+'</div>'+(x.nextAction?'<div class="timeline-note"><b>Próximo:</b> '+esc(x.nextAction)+' • '+esc(x.nextDate||'')+'</div>':'')+'</div>').join(''):'<div class="empty">Nenhuma interação registrada ainda.</div>';
  document.getElementById('detailBody').innerHTML='<div class="detail-grid"><div><div class="card" style="padding:14px;margin-top:14px"><div class="eyebrow">STATUS</div><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px"><b>'+esc(d.stage)+'</b><span class="badge '+badgeClass+'">'+money(d.value)+'</span></div><div class="stepper">'+steps+'</div><div class="op-meta">'+(d.guests||0)+' convidados • evento '+esc(d.date||'sem data')+' • responsável '+esc(d.owner||'Comercial')+'</div></div><div class="card" style="padding:14px;margin-top:12px"><div class="eyebrow">PRÓXIMA AÇÃO</div><div style="font-size:15px;font-weight:750;margin-top:6px">'+esc(d.nextAction||'Novo contato')+'</div><div class="op-meta">'+esc(d.follow||'Sem data')+'</div><div class="op-actions">'+actionButtons+'</div></div></div><div><div class="card" style="padding:14px;margin-top:14px"><div class="eyebrow">DADOS</div><div class="op-meta" style="margin-top:10px">Contato<br><b style="color:var(--text)">'+esc(d.contact||'—')+'</b></div><div class="op-meta" style="margin-top:10px">Origem<br><b style="color:var(--text)">'+esc(d.source||'—')+'</b></div><div class="op-meta" style="margin-top:10px">Prioridade<br><b style="color:var(--gold2)">'+esc(d.priority||'—')+'</b></div><div class="op-meta" style="margin-top:10px">Observações<br><b style="color:var(--text);font-weight:500">'+esc(d.notes||'—')+'</b></div></div></div></div><div class="section-title"><h2>Histórico</h2><span class="muted">'+acts.length+' interações</span></div><div class="card"><div class="timeline">'+history+'</div></div>';
  document.getElementById('detailModal').classList.add('show');
+ updateModalLock();
 }
-function closeDetail(){document.getElementById("detailModal").classList.remove("show")}
-function openActivity(id){document.getElementById("aDealId").value=id;document.getElementById("aNotes").value="";document.getElementById("aNextDate").value=localISO();document.getElementById("aOutcome").value="continue";toggleNextStage();document.getElementById("activityModal").classList.add("show")}
-function closeActivity(){document.getElementById("activityModal").classList.remove("show")}
+function closeDetail(){document.getElementById("detailModal").classList.remove("show");updateModalLock()}
+function openActivity(id){
+ const detail=document.getElementById("detailModal");
+ const activity=document.getElementById("activityModal");
+ document.getElementById("aDealId").value=id;
+ document.getElementById("aNotes").value="";
+ document.getElementById("aNextDate").value=localISO();
+ document.getElementById("aOutcome").value="continue";
+ toggleNextStage();
+ // Never stack two independently scrollable modals on mobile.
+ detail.classList.remove("show");
+ activity.classList.add("show");
+ updateModalLock();
+}
+function closeActivity(){
+ document.getElementById("activityModal").classList.remove("show");
+ updateModalLock();
+ if(window.currentDetailId){ openDealDetail(window.currentDetailId); }
+}
 function toggleNextStage(){document.getElementById("nextStageWrap").style.display=document.getElementById("aOutcome").value==="advance"?"block":"none"}
-function saveActivity(e){e.preventDefault();const id=Number(document.getElementById("aDealId").value),d=state.deals.find(x=>x.id===id);if(!d)return;d.activities=d.activities||[];const nextDate=document.getElementById("aNextDate").value;const outcome=document.getElementById("aOutcome").value;const a={id:Date.now(),date:localISO(),dateTime:new Date().toLocaleString("pt-BR"),type:document.getElementById("aType").value,result:document.getElementById("aResult").value,notes:document.getElementById("aNotes").value,nextAction:document.getElementById("aNextAction").value,nextDate:nextDate};d.activities.push(a);d.lastContact=localISO();if(outcome==="continue"){d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="advance"){d.stage=document.getElementById("aNextStage").value;d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="closed"){d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";}if(outcome==="lost"){d.stage="Perdido";d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";d.follow="";d.nextAction="";}save();closeActivity();renderAll();renderOpportunities();renderClosed();renderLost();renderReport();openDealDetail(id);toast("Interação registrada")}
+function saveActivity(e){e.preventDefault();const id=Number(document.getElementById("aDealId").value),d=state.deals.find(x=>x.id===id);if(!d)return;d.activities=d.activities||[];const nextDate=document.getElementById("aNextDate").value;const outcome=document.getElementById("aOutcome").value;const a={id:Date.now(),date:localISO(),dateTime:new Date().toLocaleString("pt-BR"),type:document.getElementById("aType").value,result:document.getElementById("aResult").value,notes:document.getElementById("aNotes").value,nextAction:document.getElementById("aNextAction").value,nextDate:nextDate};d.activities.push(a);d.lastContact=localISO();if(outcome==="continue"){d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="advance"){d.stage=document.getElementById("aNextStage").value;d.follow=nextDate;d.nextAction=a.nextAction;}if(outcome==="closed"){d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";}if(outcome==="lost"){d.stage="Perdido";d.lostAt=localISO();d.lostReason=prompt("Motivo da perda:",d.lostReason||"")||"Não informado";d.follow="";d.nextAction="";}save();renderAll();renderOpportunities();renderClosed();renderLost();renderReport();closeActivity();toast("Interação registrada")}
 function quickAdvance(id){const d=state.deals.find(x=>x.id===id);const i=stages.indexOf(d.stage);if(i<0||i>=stages.length-2){toast("Use a ação de fechamento ou negociação");return}d.stage=stages[i+1];d.follow=localISO();d.nextAction="Novo contato";save();renderAll();renderOpportunities();openDealDetail(id);toast("Etapa avançada")}
 function finishDeal(id){const d=state.deals.find(x=>x.id===id);if(!confirm("Confirmar evento como FECHADO?"))return;d.stage="Fechado";d.closedAt=localISO();d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderClosed();renderReport();openDealDetail(id);toast("Evento fechado")}
 function loseDeal(id){const d=state.deals.find(x=>x.id===id);const r=prompt("Motivo da perda:",d.lostReason||"");if(r===null)return;d.stage="Perdido";d.lostAt=localISO();d.lostReason=r||"Não informado";d.follow="";d.nextAction="";save();renderAll();renderOpportunities();renderLost();renderReport();openDealDetail(id);toast("Oportunidade perdida")}
@@ -455,7 +485,9 @@ function renderClosed(){
   document.getElementById("closedTable").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Data</th><th>Convidados</th><th>Valor</th><th>Responsável</th></tr></thead><tbody>${ds.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td>${esc(d.date||"—")}</td><td>${d.guests||"—"}</td><td><b>${money(d.value)}</b></td><td>${esc(d.owner||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento fechado.</div>';
 }
 function setGoal(){let n=prompt("Meta de faturamento do mês-alvo (R$)",state.goal);if(n!==null&&!isNaN(n)){state.goal=Number(n);save();renderAll();renderReport();toast("Meta atualizada")}}
-function openModal(){document.getElementById("fFollow").value=localISO();document.getElementById("modal").classList.add("show")}function closeModal(){document.getElementById("modal").classList.remove("show")}
+function updateModalLock(){document.body.classList.toggle("modal-open",!!document.querySelector(".modal.show"))}
+function openModal(){document.getElementById("fFollow").value=localISO();document.getElementById("modal").classList.add("show");updateModalLock()}
+function closeModal(){document.getElementById("modal").classList.remove("show");updateModalLock()}
 function saveDeal(e){e.preventDefault();const id=Date.now(),follow=fFollow.value||localISO();state.deals.push({id,company:fCompany.value,contact:fContact.value,owner:fOwner.value||"Comercial",type:fType.value,date:fDate.value,guests:Number(fGuests.value||0),value:Number(fValue.value||0),follow,nextAction:fNextAction.value,source:fSource.value,priority:fPriority.value,stage:"Lead",notes:fNotes.value,activities:[],createdAt:localISO(),lastContact:""});save();e.target.reset();closeModal();renderAll();renderOpportunities();toast("Oportunidade criada. Próxima ação definida.")}
 function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mahau-corporate-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Backup exportado")}
 renderAll();
