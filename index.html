@@ -56,17 +56,18 @@ html,body{min-width:0;overflow-x:hidden}
     backdrop-filter:blur(18px);padding:7px 8px 9px;z-index:100;
   }
   .brand{display:none}
-  .nav{display:flex;align-items:stretch;gap:4px;height:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px}
+  .nav-scroll{width:100%;height:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-scroll::-webkit-scrollbar{display:none}
+    .nav{display:flex!important;flex-wrap:nowrap!important;align-items:center;gap:6px;height:100%;width:max-content;min-width:max-content;overflow-x:visible;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px}
   .nav::-webkit-scrollbar{display:none}
   .nav button{
-    flex:0 0 76px;margin:0;padding:5px 2px;min-width:76px;height:100%;border-radius:11px;
+    flex:0 0 auto!important;width:auto!important;min-width:max-content!important;margin:0;padding:7px 10px;height:58px;border-radius:11px;
     display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;
-    font-size:17px;color:#777;
+    font-size:17px;line-height:1;color:#777;white-space:nowrap;
   }
-  .nav button span{display:block!important;font-size:8px;line-height:10px;white-space:nowrap}
+  .nav button span{display:block!important;font-size:9px;line-height:11px;white-space:nowrap;overflow:visible;text-overflow:clip;text-align:center}
   .nav button.active{box-shadow:none;background:#171717;color:var(--text)}
   .nav button.active:first-letter{color:var(--gold)}
-  .nav button span{overflow:visible;text-overflow:clip;text-align:center}
   .main{margin-left:0;width:100%;padding:18px 14px 28px}
   .top{display:block;margin-bottom:20px}
   .eyebrow{font-size:9px;letter-spacing:1.7px}
@@ -118,7 +119,7 @@ html,body{min-width:0;overflow-x:hidden}
 <div class="app">
 <aside class="sidebar">
   <div class="brand"><b>MAHAU</b><span>CORPORATE SALES</span></div>
-  <nav class="nav">
+  <div class="nav-scroll"><nav class="nav">
     <button class="active" data-page="dashboard">◈ <span>Dashboard</span></button>
     <button data-page="plano">◷ <span>30 / 60 / 90</span></button>
     <button data-page="pipeline">▦ <span>Pipeline</span></button>
@@ -131,7 +132,7 @@ html,body{min-width:0;overflow-x:hidden}
     <button data-page="tarefas">✓ <span>Tarefas</span></button>
     <button data-page="metas">↗ <span>Metas</span></button>
     <button data-page="relatorios">▤ <span>Relatórios</span></button>
-  </nav>
+  </nav></div>
 </aside>
 
 <main class="main">
