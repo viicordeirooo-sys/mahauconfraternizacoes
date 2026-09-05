@@ -49,7 +49,7 @@ html,body{min-width:0;overflow-x:hidden}
     backdrop-filter:blur(18px);padding:7px 8px 9px;z-index:100;
   }
   .brand{display:none}
-  .nav{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;height:100%}
+  .nav{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;height:100%}
   .nav button{
     margin:0;padding:5px 2px;min-width:0;height:100%;border-radius:11px;
     display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;
@@ -114,6 +114,7 @@ html,body{min-width:0;overflow-x:hidden}
     <button data-page="plano">◷ <span>30 / 60 / 90</span></button>
     <button data-page="pipeline">▦ <span>Pipeline</span></button>
     <button data-page="empresas">◎ <span>Empresas</span></button>
+    <button data-page="fechados">▣ <span>Fechados</span></button>
     <button data-page="tarefas">✓ <span>Tarefas</span></button>
     <button data-page="metas">↗ <span>Metas</span></button>
   </nav>
@@ -172,6 +173,21 @@ html,body{min-width:0;overflow-x:hidden}
 <section id="empresas" class="page">
   <div class="toolbar"><input class="input" id="companySearch" placeholder="Buscar empresa..." oninput="renderCompanies()"><button class="btn gold" onclick="openCompanyModal()">+ Empresa</button></div>
   <div class="card"><div id="companiesTable"></div></div>
+</section>
+
+<section id="fechados" class="page">
+  <div class="card" style="margin-bottom:14px">
+    <div class="eyebrow">RECEITA CONTRATADA</div>
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px">
+      <div><div class="title" style="font-size:26px;margin-top:5px">Eventos Fechados</div><div class="muted">Negócios que já viraram contrato.</div></div>
+      <div style="text-align:right"><div class="kpi-value" id="closedRevenue">R$ 0</div><div class="muted" style="font-size:10px">valor contratado</div></div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input class="input" id="closedSearch" placeholder="Buscar empresa..." oninput="renderClosed()">
+    <select class="select" id="closedMonth" onchange="renderClosed()"><option value="">Todos os meses</option></select>
+  </div>
+  <div class="card"><div id="closedTable"></div></div>
 </section>
 
 <section id="tarefas" class="page">
@@ -261,9 +277,9 @@ function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style
 function setPage(page){
  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");
  document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
- const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",tarefas:"Tarefas",metas:"Metas"};
+ const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",fechados:"Eventos Fechados",tarefas:"Tarefas",metas:"Metas"};
  document.getElementById("pageTitle").textContent=names[page];
- if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies();if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="plano")renderPhases();
+ if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies(); if(page==="fechados")renderClosed(); if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="plano")renderPhases();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 function renderAll(){renderKPIs();renderMiniPipeline();renderActions();renderRecent();renderPhases();}
@@ -292,6 +308,22 @@ function renderTasks(){let f=document.getElementById("taskFilter")?.value||"",ts
 function toggleTask(id){let t=state.tasks.find(x=>x.id===id);t.done=!t.done;save();renderTasks();renderPhases();toast(t.done?"Tarefa concluída":"Tarefa reaberta")}
 function renderPhases(){let html=state.phases.map(p=>{let done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;return `<div class="phase"><div class="phase-head"><div><div class="date">${p.date}</div><h3>${p.name}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{let t=state.tasks.find(t=>t.phase===p.id&&t.index===i);let checked=t?.done||false;return `<div class="task ${checked?"done":""}"><input type="checkbox" ${checked?"checked":""} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`}).join("")}</div>`}).join("");document.getElementById("phases").innerHTML=html}
 function togglePhaseTask(pid,index){let t=state.tasks.find(x=>x.phase===pid&&x.index===index);if(!t){t={id:Date.now(),text:state.phases.find(p=>p.id===pid).tasks[index],owner:"Comercial",date:"",done:false,phase:pid,index};state.tasks.push(t)}t.done=!t.done;save();renderPhases();renderTasks();toast(t.done?"Etapa concluída":"Etapa reaberta")}
+function renderClosed(){
+  let q=(document.getElementById("closedSearch")?.value||"").toLowerCase();
+  let month=(document.getElementById("closedMonth")?.value||"");
+  let ds=state.deals.filter(d=>d.stage==="Fechado").filter(d=>!q||d.company.toLowerCase().includes(q));
+  const months=[...new Set(ds.map(d=>d.date?d.date.slice(0,7):"").filter(Boolean))].sort();
+  const sel=document.getElementById("closedMonth");
+  if(sel){
+    const old=sel.value;
+    sel.innerHTML='<option value="">Todos os meses</option>'+months.map(m=>`<option value="${m}" ${m===old?"selected":""}>${m}</option>`).join("");
+    month=sel.value;
+    if(month) ds=ds.filter(d=>(d.date||"").startsWith(month));
+  }
+  let revenue=ds.reduce((a,d)=>a+d.value,0);
+  document.getElementById("closedRevenue").textContent=money(revenue);
+  document.getElementById("closedTable").innerHTML=ds.length?`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Data</th><th>Convidados</th><th>Valor</th><th>Responsável</th></tr></thead><tbody>${ds.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact||"")}</span></td><td>${esc(d.type)}</td><td>${esc(d.date||"—")}</td><td>${d.guests||"—"}</td><td><b>${money(d.value)}</b></td><td>${esc(d.owner||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhum evento fechado.</div>';
+}
 function renderGoals(){let won=state.deals.filter(d=>d.stage==="Fechado").reduce((a,d)=>a+d.value,0),pct=state.goal?Math.min(100,won/state.goal*100):0,active=activeDeals().length,closed=state.deals.filter(d=>d.stage==="Fechado").length;document.getElementById("goalBig").textContent=money(state.goal);document.getElementById("closedBig").textContent=closed;document.getElementById("conversionBig").textContent=(state.deals.length?Math.round(closed/state.deals.length*100):0)+"%";document.getElementById("goalPct").textContent=Math.round(pct)+"%";document.getElementById("goalBar").style.width=pct+"%"}
 function setGoal(){let n=prompt("Meta de faturamento do mês-alvo (R$)",state.goal);if(n!==null&&!isNaN(n)){state.goal=Number(n);save();renderAll();renderGoals();toast("Meta atualizada")}}
 function openModal(){document.getElementById("modal").classList.add("show")}function closeModal(){document.getElementById("modal").classList.remove("show")}
@@ -302,6 +334,39 @@ function openTaskModal(){document.getElementById("taskModal").classList.add("sho
 function saveTask(e){e.preventDefault();state.tasks.push({id:Date.now(),text:tText.value,owner:tOwner.value,date:tDate.value,done:false});save();e.target.reset();closeTaskModal();renderTasks();toast("Tarefa criada")}
 function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mahau-corporate-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Backup exportado")}
 renderAll();
+</script>
+
+<script type="module">
+/*
+  FIREBASE — PRÓXIMA ETAPA
+  1) Crie um projeto no Firebase.
+  2) Ative Authentication > Email/Password.
+  3) Crie Firestore Database.
+  4) Cadastre o app Web.
+  5) Substitua os valores abaixo pelo Firebase Config.
+  NUNCA coloque senha de usuário aqui.
+*/
+const firebaseConfig = {
+  apiKey: "COLE_AQUI",
+  authDomain: "COLE_AQUI.firebaseapp.com",
+  projectId: "COLE_AQUI",
+  storageBucket: "COLE_AQUI.appspot.com",
+  messagingSenderId: "COLE_AQUI",
+  appId: "COLE_AQUI"
+};
+window.MAHAU_FIREBASE_CONFIG = firebaseConfig;
+window.MAHAU_FIREBASE_READY = false;
+if(firebaseConfig.apiKey !== "COLE_AQUI"){
+  try{
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
+    const { getAuth } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js");
+    const { getFirestore } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
+    const app=initializeApp(firebaseConfig);
+    window.MAHAU_FIREBASE={app,auth:getAuth(app),db:getFirestore(app)};
+    window.MAHAU_FIREBASE_READY=true;
+    console.log("MAHAU Firebase conectado.");
+  }catch(e){console.error("Firebase:",e);}
+}
 </script>
 </body>
 </html>
