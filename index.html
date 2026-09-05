@@ -240,27 +240,15 @@ html,body{min-width:0;overflow-x:hidden}
 
 <div class="toast" id="toast"></div>
 <script>
-const KEY="mahau_corporate_v1";
+const KEY="mahau_corporate_production_v1";
 let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
- goal:500000,
- deals:[
-  {id:1,company:"Empresa Exemplo",contact:"Mariana — RH",owner:"Comercial",type:"Festa de fim de ano",date:"2026-12-11",guests:250,value:85000,follow:"2026-09-09",stage:"Proposta",notes:"Aguardando retorno da diretoria."},
-  {id:2,company:"Grupo Alpha",contact:"Carlos — Marketing",owner:"Comercial",type:"Evento de clientes",date:"2026-11-20",guests:180,value:65000,follow:"2026-09-12",stage:"Qualificado",notes:"Primeiro contato realizado."},
-  {id:3,company:"Tech Brasil",contact:"Ana — People",owner:"Comercial",type:"Confraternização corporativa",date:"2026-12-04",guests:300,value:110000,follow:"2026-09-15",stage:"Reunião",notes:"Visita prevista."}
- ],
- companies:[
-  {id:1,name:"Empresa Exemplo",segment:"Tecnologia",contact:"Mariana",role:"RH",channel:"LinkedIn",priority:"A"},
-  {id:2,name:"Grupo Alpha",segment:"Marketing",contact:"Carlos",role:"Marketing",channel:"Indicação",priority:"A"},
-  {id:3,name:"Tech Brasil",segment:"Tecnologia",contact:"Ana",role:"People",channel:"E-mail",priority:"A"}
- ],
- tasks:[
-  {id:1,text:"Montar lista de 300 empresas-alvo",owner:"Comercial",date:"2026-09-10",done:false},
-  {id:2,text:"Mapear decisores das contas prioritárias",owner:"Comercial",date:"2026-09-12",done:false},
-  {id:3,text:"Revisar apresentação comercial corporativa",owner:"Marketing",date:"2026-09-09",done:false}
- ],
+ goal:0,
+ deals:[],
+ companies:[],
+ tasks:[],
  phases:[
   {id:"p1",name:"SETEMBRO — CONSTRUIR",date:"0–30 dias",tasks:[
-   "Definir oferta e produtos exclusivamente corporativos","Criar apresentação comercial e materiais","Implantar CRM e regras de pipeline","Montar lista de 300 empresas-alvo","Montar lista de 100 agências corporativas","Mapear decisores de RH, Marketing, Eventos e Administração","Iniciar prospecção diária","Criar scripts de abordagem e follow-up"
+   "Definir oferta e produtos exclusivamente corporativos","Criar apresentação comercial e materiais","Implantar CRM e regras de pipeline","Montar lista de empresas-alvo","Montar lista de agências corporativas","Mapear decisores de RH, Marketing, Eventos e Administração","Iniciar prospecção diária","Criar scripts de abordagem e follow-up"
   ]},
   {id:"p2",name:"OUTUBRO — DESENVOLVER",date:"31–60 dias",tasks:[
    "Aumentar volume de prospecção","Realizar reuniões e visitas ao MAHAU","Enviar propostas com briefing completo","Ativar relacionamento com agências","Executar MAHAU Experience","Reativar leads de setembro","Identificar segmentos com maior conversão"
@@ -268,8 +256,7 @@ let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
   {id:"p3",name:"NOVEMBRO — CONVERTER",date:"61–90 dias",tasks:[
    "Priorizar oportunidades quentes","Envolver decisores finais","Executar follow-up ativo","Resolver objeções de preço, formato e data","Fechar contratos do mês-alvo","Preencher gaps do calendário","Preparar pipeline do próximo ciclo"
   ]}
- ]
-};
+]};
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(v||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
