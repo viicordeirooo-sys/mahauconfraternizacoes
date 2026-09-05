@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAHAU Corporate Sales</title>
+<style>
+:root{
+  --bg:#050505;--panel:#101010;--panel2:#151515;--line:#292929;
+  --gold:#c9a45c;--gold2:#e0c17e;--text:#f4f1e8;--muted:#9c9a93;
+  --green:#6fcf97;--red:#eb5757;--blue:#6ea8fe;--radius:16px;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:245px;background:#080808;border-right:1px solid var(--line);padding:24px 14px;position:fixed;inset:0 auto 0 0;z-index:10}
+.brand{padding:8px 12px 26px}.brand b{font-size:25px;letter-spacing:4px}.brand span{display:block;color:var(--gold);font-size:10px;letter-spacing:2px;margin-top:5px}
+.nav button{display:flex;width:100%;align-items:center;gap:12px;background:transparent;border:0;color:var(--muted);padding:12px;border-radius:10px;text-align:left;margin:3px 0}
+.nav button:hover,.nav button.active{background:#151515;color:var(--text)}.nav button.active{box-shadow:inset 3px 0 var(--gold)}
+.main{margin-left:245px;width:calc(100% - 245px);padding:30px;max-width:1500px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}.eyebrow{color:var(--gold);font-size:11px;letter-spacing:2px;font-weight:700}.title{font-size:30px;margin:7px 0 4px}.subtitle{color:var(--muted);font-size:14px}
+.actions{display:flex;gap:9px}.btn{border:1px solid var(--line);background:#141414;color:var(--text);padding:10px 14px;border-radius:10px}.btn:hover{border-color:#555}.btn.gold{background:var(--gold);color:#080808;border-color:var(--gold);font-weight:700}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px}.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}.kpi-value{font-size:27px;font-weight:750;margin-top:8px}.kpi-note{font-size:11px;color:var(--muted);margin-top:5px}
+.two{grid-template-columns:1.4fr 1fr}.three{grid-template-columns:repeat(3,1fr)}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px}.section-title h2{font-size:15px;margin:0}.muted{color:var(--muted)}
+.progress{height:8px;background:#252525;border-radius:20px;overflow:hidden}.progress i{display:block;height:100%;background:var(--gold);border-radius:20px}
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stage{background:#0d0d0d;border:1px solid var(--line);border-radius:12px;padding:12px;min-height:160px}.stage-head{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:12px}.stage-count{color:var(--gold)}.deal{background:#151515;border:1px solid #242424;padding:10px;border-radius:10px;margin-bottom:8px}.deal strong{font-size:12px}.deal small{display:block;color:var(--muted);margin-top:4px}
+table{width:100%;border-collapse:collapse}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px}th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.7px}
+.badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#1d1d1d;color:var(--muted);font-size:10px}.badge.gold{color:var(--gold2);background:#282116}.badge.green{color:var(--green);background:#12251b}.badge.red{color:var(--red);background:#291515}
+.phase{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:18px;margin-bottom:14px}.phase-head{display:flex;justify-content:space-between;align-items:center}.phase h3{margin:0;font-size:16px}.phase .date{color:var(--gold);font-size:11px}.task{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px solid #202020}.task:first-of-type{margin-top:14px}.task input{accent-color:var(--gold);margin-top:3px}.task.done label{text-decoration:line-through;color:#777}.task label{font-size:13px;flex:1}.owner{color:var(--muted);font-size:11px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px}.input,.select,.textarea{background:#0d0d0d;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}.input:focus,.select:focus,.textarea:focus{border-color:var(--gold)}.input{min-width:220px}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal.show{display:flex}.modal-box{width:min(620px,100%);background:#111;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 80px #000}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.close{background:none;border:0;color:var(--muted);font-size:22px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.form .full{grid-column:1/-1}.form label{font-size:10px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}.form input,.form select,.form textarea{width:100%}.form textarea{min-height:80px;resize:vertical}.empty{text-align:center;color:var(--muted);padding:35px 10px}
+.toast{position:fixed;right:22px;bottom:22px;background:#181818;border:1px solid var(--gold);padding:12px 16px;border-radius:10px;display:none;z-index:80;font-size:12px}
+@media(max-width:1000px){.sidebar{width:70px}.brand{padding:8px 5px 25px}.brand b{font-size:19px}.brand span{display:none}.nav button span{display:none}.nav button{justify-content:center}.main{margin-left:70px;width:calc(100% - 70px);padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}.pipeline{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
+@media(max-width:600px){.top{display:block}.actions{margin-top:15px}.kpis{grid-template-columns:1fr 1fr}.pipeline{grid-template-columns:1fr}.form{grid-template-columns:1fr}.form .full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><b>MAHAU</b><span>CORPORATE SALES</span></div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard">◈ <span>Dashboard</span></button>
+    <button data-page="plano">◷ <span>30 / 60 / 90</span></button>
+    <button data-page="pipeline">▦ <span>Pipeline</span></button>
+    <button data-page="empresas">◎ <span>Empresas</span></button>
+    <button data-page="tarefas">✓ <span>Tarefas</span></button>
+    <button data-page="metas">↗ <span>Metas</span></button>
+  </nav>
+</aside>
+
+<main class="main">
+<header class="top">
+  <div><div class="eyebrow">EVENTOS CORPORATIVOS</div><div class="title" id="pageTitle">Dashboard</div><div class="subtitle">Operação comercial • Setembro → Novembro 2026</div></div>
+  <div class="actions"><button class="btn" onclick="exportData()">Exportar</button><button class="btn gold" onclick="openModal()">+ Nova oportunidade</button></div>
+</header>
+
+<section id="dashboard" class="page active">
+  <div class="grid kpis">
+    <div class="card"><div class="kpi-label">Pipeline</div><div class="kpi-value" id="kPipeline">R$ 0</div><div class="kpi-note">valor potencial</div></div>
+    <div class="card"><div class="kpi-label">Contratado</div><div class="kpi-value" id="kWon">R$ 0</div><div class="kpi-note">eventos fechados</div></div>
+    <div class="card"><div class="kpi-label">Oportunidades</div><div class="kpi-value" id="kOpp">0</div><div class="kpi-note">ativas no funil</div></div>
+    <div class="card"><div class="kpi-label">Follow-ups</div><div class="kpi-value" id="kFollow">0</div><div class="kpi-note">pendentes</div></div>
+    <div class="card"><div class="kpi-label">Meta</div><div class="kpi-value" id="kGoal">R$ 0</div><div class="kpi-note">mês-alvo</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <div class="section-title"><h2>Pipeline comercial</h2><span class="muted" id="pipelinePercent">0%</span></div>
+      <div class="progress"><i id="pipelineBar" style="width:0%"></i></div>
+      <div style="height:18px"></div>
+      <div class="pipeline" id="miniPipeline"></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><h2>Próximas ações</h2><span class="muted">CRM</span></div>
+      <div id="nextActions"></div>
+    </div>
+  </div>
+  <div class="section-title"><h2>Últimas oportunidades</h2></div>
+  <div class="card"><div id="recentDeals"></div></div>
+</section>
+
+<section id="plano" class="page">
+  <div class="card" style="margin-bottom:16px">
+    <div class="eyebrow">PLANO DE EXECUÇÃO</div>
+    <h2 style="margin:7px 0">90 dias para o mês-alvo</h2>
+    <p class="muted">Setembro constrói a máquina. Outubro desenvolve o pipeline. Novembro converte em contratos.</p>
+  </div>
+  <div id="phases"></div>
+</section>
+
+<section id="pipeline" class="page">
+  <div class="toolbar"><input class="input" id="search" placeholder="Buscar empresa..." oninput="renderPipeline()"><select class="select" id="filterOwner" onchange="renderPipeline()"><option value="">Todos os responsáveis</option></select></div>
+  <div class="pipeline" id="fullPipeline"></div>
+</section>
+
+<section id="empresas" class="page">
+  <div class="toolbar"><input class="input" id="companySearch" placeholder="Buscar empresa..." oninput="renderCompanies()"><button class="btn gold" onclick="openCompanyModal()">+ Empresa</button></div>
+  <div class="card"><div id="companiesTable"></div></div>
+</section>
+
+<section id="tarefas" class="page">
+  <div class="toolbar"><select class="select" id="taskFilter" onchange="renderTasks()"><option value="">Todas</option><option value="pendente">Pendentes</option><option value="done">Concluídas</option></select><button class="btn gold" onclick="openTaskModal()">+ Tarefa</button></div>
+  <div class="card"><div id="tasksTable"></div></div>
+</section>
+
+<section id="metas" class="page">
+  <div class="grid three">
+    <div class="card"><div class="kpi-label">Meta de faturamento</div><div class="kpi-value" id="goalBig">R$ 0</div><button class="btn" style="margin-top:12px" onclick="setGoal()">Editar meta</button></div>
+    <div class="card"><div class="kpi-label">Fechamentos</div><div class="kpi-value" id="closedBig">0</div><div class="kpi-note">eventos contratados</div></div>
+    <div class="card"><div class="kpi-label">Conversão</div><div class="kpi-value" id="conversionBig">0%</div><div class="kpi-note">oportunidades → fechados</div></div>
+  </div>
+  <div class="section-title"><h2>Progresso da meta</h2></div>
+  <div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>Contratado</span><b id="goalPct">0%</b></div><div class="progress"><i id="goalBar" style="width:0%"></i></div></div>
+</section>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h3>Nova oportunidade</h3><button class="close" onclick="closeModal()">×</button></div>
+<form class="form" onsubmit="saveDeal(event)">
+<div><label>Empresa</label><input class="input" id="fCompany" required></div>
+<div><label>Contato / decisor</label><input class="input" id="fContact"></div>
+<div><label>Responsável</label><input class="input" id="fOwner"></div>
+<div><label>Evento</label><select class="select" id="fType"><option>Confraternização corporativa</option><option>Festa de fim de ano</option><option>Evento de clientes</option><option>Lançamento / marca</option><option>Premiação</option><option>Evento interno</option><option>Evento institucional</option></select></div>
+<div><label>Data</label><input class="input" id="fDate" type="date"></div>
+<div><label>Convidados</label><input class="input" id="fGuests" type="number"></div>
+<div><label>Valor potencial (R$)</label><input class="input" id="fValue" type="number" min="0" required></div>
+<div><label>Próximo follow-up</label><input class="input" id="fFollow" type="date"></div>
+<div class="full"><label>Observações</label><textarea class="textarea" id="fNotes"></textarea></div>
+<div class="full" style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold">Salvar oportunidade</button></div>
+</form></div></div>
+
+<div class="modal" id="companyModal"><div class="modal-box"><div class="modal-head"><h3>Nova empresa</h3><button class="close" onclick="closeCompanyModal()">×</button></div>
+<form class="form" onsubmit="saveCompany(event)">
+<div><label>Empresa</label><input class="input" id="cName" required></div><div><label>Segmento</label><input class="input" id="cSegment"></div>
+<div><label>Decisor</label><input class="input" id="cContact"></div><div><label>Cargo</label><input class="input" id="cRole"></div>
+<div><label>Canal</label><select class="select" id="cChannel"><option>LinkedIn</option><option>E-mail</option><option>Telefone</option><option>WhatsApp</option><option>Indicação</option></select></div>
+<div><label>Prioridade</label><select class="select" id="cPriority"><option>A</option><option>B</option><option>C</option></select></div>
+<div class="full"><label>Observações</label><textarea class="textarea" id="cNotes"></textarea></div>
+<div class="full" style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" onclick="closeCompanyModal()">Cancelar</button><button class="btn gold">Salvar empresa</button></div>
+</form></div></div>
+
+<div class="modal" id="taskModal"><div class="modal-box"><div class="modal-head"><h3>Nova tarefa</h3><button class="close" onclick="closeTaskModal()">×</button></div>
+<form class="form" onsubmit="saveTask(event)">
+<div class="full"><label>Tarefa</label><input class="input" id="tText" required></div>
+<div><label>Responsável</label><input class="input" id="tOwner"></div><div><label>Prazo</label><input class="input" id="tDate" type="date"></div>
+<div class="full" style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" onclick="closeTaskModal()">Cancelar</button><button class="btn gold">Criar tarefa</button></div>
+</form></div></div>
+
+<div class="toast" id="toast"></div>
+<script>
+const KEY="mahau_corporate_v1";
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
+ goal:500000,
+ deals:[
+  {id:1,company:"Empresa Exemplo",contact:"Mariana — RH",owner:"Comercial",type:"Festa de fim de ano",date:"2026-12-11",guests:250,value:85000,follow:"2026-09-09",stage:"Proposta",notes:"Aguardando retorno da diretoria."},
+  {id:2,company:"Grupo Alpha",contact:"Carlos — Marketing",owner:"Comercial",type:"Evento de clientes",date:"2026-11-20",guests:180,value:65000,follow:"2026-09-12",stage:"Qualificado",notes:"Primeiro contato realizado."},
+  {id:3,company:"Tech Brasil",contact:"Ana — People",owner:"Comercial",type:"Confraternização corporativa",date:"2026-12-04",guests:300,value:110000,follow:"2026-09-15",stage:"Reunião",notes:"Visita prevista."}
+ ],
+ companies:[
+  {id:1,name:"Empresa Exemplo",segment:"Tecnologia",contact:"Mariana",role:"RH",channel:"LinkedIn",priority:"A"},
+  {id:2,name:"Grupo Alpha",segment:"Marketing",contact:"Carlos",role:"Marketing",channel:"Indicação",priority:"A"},
+  {id:3,name:"Tech Brasil",segment:"Tecnologia",contact:"Ana",role:"People",channel:"E-mail",priority:"A"}
+ ],
+ tasks:[
+  {id:1,text:"Montar lista de 300 empresas-alvo",owner:"Comercial",date:"2026-09-10",done:false},
+  {id:2,text:"Mapear decisores das contas prioritárias",owner:"Comercial",date:"2026-09-12",done:false},
+  {id:3,text:"Revisar apresentação comercial corporativa",owner:"Marketing",date:"2026-09-09",done:false}
+ ],
+ phases:[
+  {id:"p1",name:"SETEMBRO — CONSTRUIR",date:"0–30 dias",tasks:[
+   "Definir oferta e produtos exclusivamente corporativos","Criar apresentação comercial e materiais","Implantar CRM e regras de pipeline","Montar lista de 300 empresas-alvo","Montar lista de 100 agências corporativas","Mapear decisores de RH, Marketing, Eventos e Administração","Iniciar prospecção diária","Criar scripts de abordagem e follow-up"
+  ]},
+  {id:"p2",name:"OUTUBRO — DESENVOLVER",date:"31–60 dias",tasks:[
+   "Aumentar volume de prospecção","Realizar reuniões e visitas ao MAHAU","Enviar propostas com briefing completo","Ativar relacionamento com agências","Executar MAHAU Experience","Reativar leads de setembro","Identificar segmentos com maior conversão"
+  ]},
+  {id:"p3",name:"NOVEMBRO — CONVERTER",date:"61–90 dias",tasks:[
+   "Priorizar oportunidades quentes","Envolver decisores finais","Executar follow-up ativo","Resolver objeções de preço, formato e data","Fechar contratos do mês-alvo","Preencher gaps do calendário","Preparar pipeline do próximo ciclo"
+  ]}
+ ]
+};
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(v||0);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style.display="block";setTimeout(()=>x.style.display="none",1800)}
+function setPage(page){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ const names={dashboard:"Dashboard",plano:"Plano 30 / 60 / 90",pipeline:"Pipeline Comercial",empresas:"Empresas",tarefas:"Tarefas",metas:"Metas"};
+ document.getElementById("pageTitle").textContent=names[page];
+ if(page==="dashboard")renderAll(); if(page==="pipeline")renderPipeline(); if(page==="empresas")renderCompanies();if(page==="tarefas")renderTasks();if(page==="metas")renderGoals();if(page==="plano")renderPhases();
+}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+function renderAll(){renderKPIs();renderMiniPipeline();renderActions();renderRecent();renderPhases();}
+const stages=["Lead","Qualificado","Reunião","Proposta","Negociação","Fechado"];
+function activeDeals(){return state.deals.filter(d=>d.stage!=="Fechado"&&d.stage!=="Perdido")}
+function renderKPIs(){
+ let pipe=activeDeals().reduce((a,d)=>a+d.value,0),won=state.deals.filter(d=>d.stage==="Fechado").reduce((a,d)=>a+d.value,0);
+ document.getElementById("kPipeline").textContent=money(pipe);document.getElementById("kWon").textContent=money(won);
+ document.getElementById("kOpp").textContent=activeDeals().length;
+ document.getElementById("kFollow").textContent=activeDeals().filter(d=>d.follow).length;
+ document.getElementById("kGoal").textContent=money(state.goal);
+ let pct=Math.min(100,state.goal?won/state.goal*100:0);document.getElementById("pipelinePercent").textContent=Math.round(pct)+"%";document.getElementById("pipelineBar").style.width=pct+"%";
+}
+function dealHTML(d){return `<div class="deal"><strong>${esc(d.company)}</strong><small>${esc(d.type)}</small><small>${money(d.value)} • ${esc(d.owner||"Sem responsável")}</small></div>`}
+function renderMiniPipeline(){document.getElementById("miniPipeline").innerHTML=stages.slice(0,5).map(s=>{let ds=state.deals.filter(d=>d.stage===s);return `<div class="stage"><div class="stage-head"><span>${s}</span><span class="stage-count">${ds.length}</span></div>${ds.slice(0,2).map(dealHTML).join("")}${ds.length>2?`<small class="muted">+${ds.length-2} oportunidades</small>`:""}</div>`}).join("")}
+function renderActions(){let ds=activeDeals().filter(d=>d.follow).sort((a,b)=>(a.follow||"").localeCompare(b.follow||"")).slice(0,6);document.getElementById("nextActions").innerHTML=ds.length?ds.map(d=>`<div class="task"><span style="color:var(--gold)">●</span><div><b style="font-size:12px">${esc(d.company)}</b><div class="muted" style="font-size:11px">Follow-up: ${esc(d.follow)} • ${esc(d.stage)}</div></div></div>`).join(""):`<div class="empty">Nenhum follow-up pendente.</div>`}
+function renderRecent(){let ds=[...state.deals].reverse().slice(0,8);document.getElementById("recentDeals").innerHTML=`<table><thead><tr><th>Empresa</th><th>Evento</th><th>Etapa</th><th>Valor</th><th>Follow-up</th></tr></thead><tbody>${ds.map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.contact)}</span></td><td>${esc(d.type)}</td><td><span class="badge ${d.stage==="Fechado"?"green":d.stage==="Negociação"?"gold":""}">${esc(d.stage)}</span></td><td>${money(d.value)}</td><td>${esc(d.follow||"—")}</td></tr>`).join("")}</tbody></table>`}
+function renderPipeline(){
+ let q=(document.getElementById("search")?.value||"").toLowerCase(), own=document.getElementById("filterOwner")?.value||"";
+ let owners=[...new Set(state.deals.map(d=>d.owner).filter(Boolean))];if(document.getElementById("filterOwner"))document.getElementById("filterOwner").innerHTML='<option value="">Todos os responsáveis</option>'+owners.map(o=>`<option ${o===own?"selected":""}>${esc(o)}</option>`).join("");
+ document.getElementById("fullPipeline").innerHTML=stages.map(s=>{let ds=state.deals.filter(d=>d.stage===s&&(!q||d.company.toLowerCase().includes(q))&&(!own||d.owner===own));return `<div class="stage"><div class="stage-head"><span>${s}</span><span class="stage-count">${ds.length}</span></div>${ds.map(d=>`<div class="deal" style="cursor:pointer" onclick="editStage(${d.id})"><strong>${esc(d.company)}</strong><small>${money(d.value)}</small><small>${esc(d.follow||"Sem follow-up")}</small></div>`).join("")||'<div class="empty" style="padding:20px 0">Vazio</div>'}</div>`}).join("");
+}
+function editStage(id){let d=state.deals.find(x=>x.id===id), s=prompt("Nova etapa: Lead, Qualificado, Reunião, Proposta, Negociação, Fechado, Perdido",d.stage);if(s&&[...stages,"Perdido"].includes(s)){d.stage=s;save();renderAll();renderPipeline();toast("Etapa atualizada")}}
+function renderCompanies(){let q=(document.getElementById("companySearch")?.value||"").toLowerCase();let cs=state.companies.filter(c=>c.name.toLowerCase().includes(q)||String(c.segment).toLowerCase().includes(q));document.getElementById("companiesTable").innerHTML=cs.length?`<table><thead><tr><th>Empresa</th><th>Segmento</th><th>Decisor</th><th>Canal</th><th>Prioridade</th></tr></thead><tbody>${cs.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.segment)}</td><td>${esc(c.contact)}<br><span class="muted">${esc(c.role)}</span></td><td>${esc(c.channel)}</td><td><span class="badge ${c.priority==="A"?"gold":""}">${esc(c.priority)}</span></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma empresa cadastrada.</div>'}
+function renderTasks(){let f=document.getElementById("taskFilter")?.value||"",ts=state.tasks.filter(t=>!f||(f==="done"?t.done:!t.done));document.getElementById("tasksTable").innerHTML=ts.length?`<table><thead><tr><th></th><th>Tarefa</th><th>Responsável</th><th>Prazo</th></tr></thead><tbody>${ts.map(t=>`<tr><td><input type="checkbox" ${t.done?"checked":""} onchange="toggleTask(${t.id})" style="accent-color:var(--gold)"></td><td style="${t.done?"text-decoration:line-through;color:#777":""}">${esc(t.text)}</td><td>${esc(t.owner||"—")}</td><td>${esc(t.date||"—")}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma tarefa.</div>'}
+function toggleTask(id){let t=state.tasks.find(x=>x.id===id);t.done=!t.done;save();renderTasks();renderPhases();toast(t.done?"Tarefa concluída":"Tarefa reaberta")}
+function renderPhases(){let html=state.phases.map(p=>{let done=p.tasks.filter((_,i)=>state.tasks.find(t=>t.phase===p.id&&t.index===i)?.done).length;return `<div class="phase"><div class="phase-head"><div><div class="date">${p.date}</div><h3>${p.name}</h3></div><span class="badge">${done}/${p.tasks.length}</span></div>${p.tasks.map((x,i)=>{let t=state.tasks.find(t=>t.phase===p.id&&t.index===i);let checked=t?.done||false;return `<div class="task ${checked?"done":""}"><input type="checkbox" ${checked?"checked":""} onchange="togglePhaseTask('${p.id}',${i})"><label>${esc(x)}</label></div>`}).join("")}</div>`}).join("");document.getElementById("phases").innerHTML=html}
+function togglePhaseTask(pid,index){let t=state.tasks.find(x=>x.phase===pid&&x.index===index);if(!t){t={id:Date.now(),text:state.phases.find(p=>p.id===pid).tasks[index],owner:"Comercial",date:"",done:false,phase:pid,index};state.tasks.push(t)}t.done=!t.done;save();renderPhases();renderTasks();toast(t.done?"Etapa concluída":"Etapa reaberta")}
+function renderGoals(){let won=state.deals.filter(d=>d.stage==="Fechado").reduce((a,d)=>a+d.value,0),pct=state.goal?Math.min(100,won/state.goal*100):0,active=activeDeals().length,closed=state.deals.filter(d=>d.stage==="Fechado").length;document.getElementById("goalBig").textContent=money(state.goal);document.getElementById("closedBig").textContent=closed;document.getElementById("conversionBig").textContent=(state.deals.length?Math.round(closed/state.deals.length*100):0)+"%";document.getElementById("goalPct").textContent=Math.round(pct)+"%";document.getElementById("goalBar").style.width=pct+"%"}
+function setGoal(){let n=prompt("Meta de faturamento do mês-alvo (R$)",state.goal);if(n!==null&&!isNaN(n)){state.goal=Number(n);save();renderAll();renderGoals();toast("Meta atualizada")}}
+function openModal(){document.getElementById("modal").classList.add("show")}function closeModal(){document.getElementById("modal").classList.remove("show")}
+function saveDeal(e){e.preventDefault();state.deals.push({id:Date.now(),company:fCompany.value,contact:fContact.value,owner:fOwner.value||"Comercial",type:fType.value,date:fDate.value,guests:Number(fGuests.value||0),value:Number(fValue.value||0),follow:fFollow.value,stage:"Lead",notes:fNotes.value});save();e.target.reset();closeModal();renderAll();toast("Oportunidade criada")}
+function openCompanyModal(){document.getElementById("companyModal").classList.add("show")}function closeCompanyModal(){document.getElementById("companyModal").classList.remove("show")}
+function saveCompany(e){e.preventDefault();state.companies.push({id:Date.now(),name:cName.value,segment:cSegment.value,contact:cContact.value,role:cRole.value,channel:cChannel.value,priority:cPriority.value});save();e.target.reset();closeCompanyModal();renderCompanies();toast("Empresa adicionada")}
+function openTaskModal(){document.getElementById("taskModal").classList.add("show")}function closeTaskModal(){document.getElementById("taskModal").classList.remove("show")}
+function saveTask(e){e.preventDefault();state.tasks.push({id:Date.now(),text:tText.value,owner:tOwner.value,date:tDate.value,done:false});save();e.target.reset();closeTaskModal();renderTasks();toast("Tarefa criada")}
+function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mahau-corporate-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Backup exportado")}
+renderAll();
+</script>
+</body>
+</html>
